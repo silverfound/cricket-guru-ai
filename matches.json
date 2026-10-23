@@ -2005,10 +2005,12 @@
       "status": "live",
       "score": {
         "home": 169,
-        "away": 0
+        "away": 76
       },
       "linescore": {
-        "away": [],
+        "away": [
+          76
+        ],
         "home": [
           169
         ]
@@ -2131,7 +2133,7 @@
     "total": 83,
     "limit": 200,
     "offset": 0,
-    "request_id": "1108cc3b-38a3-4418-989b-6482ca41e113",
+    "request_id": "367a08cd-8e8f-4443-a12b-9561842e295b",
     "date_window": {
       "date": "2026-10-23:2026-10-30",
       "timezone": "UTC",
