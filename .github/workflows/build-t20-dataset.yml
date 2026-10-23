@@ -1,0 +1,136 @@
+name: Build Cricsheet T20 Match Dataset
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "25 4 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  build-t20-dataset:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download and process Cricsheet T20 archive
+        run: |
+          python - <<'PY'
+          import io
+          import json
+          import os
+          import urllib.request
+          import zipfile
+
+          url = "https://cricsheet.org/downloads/all_json.zip"
+          request = urllib.request.Request(
+              url, headers={"User-Agent": "CricketGuruAI/1.0"}
+          )
+
+          with urllib.request.urlopen(request, timeout=240) as response:
+              archive_bytes = response.read()
+
+          matches = []
+          match_types = {"T20", "IT20", "WT20"}
+
+          with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+              for filename in archive.namelist():
+                  if not filename.endswith(".json") or "/" in filename:
+                      continue
+
+                  try:
+                      with archive.open(filename) as file:
+                          raw = json.load(file)
+
+                      info = raw.get("info", {})
+                      if str(info.get("match_type", "")).upper() not in match_types:
+                          continue
+
+                      teams = info.get("teams", [])
+                      winner = info.get("outcome", {}).get("winner")
+
+                      if len(teams) != 2 or winner not in teams:
+                          continue
+
+                      innings_rows = []
+
+                      for innings in raw.get("innings", []):
+                          team = innings.get("team")
+                          if team not in teams:
+                              continue
+
+                          runs = 0
+                          wickets = 0
+                          legal_balls = 0
+
+                          for over in innings.get("overs", []):
+                              for delivery in over.get("deliveries", []):
+                                  runs += int(
+                                      delivery.get("runs", {}).get("total", 0)
+                                  )
+                                  wickets += len(delivery.get("wickets", []))
+
+                                  extras = delivery.get("extras", {})
+                                  if "wides" not in extras and "noballs" not in extras:
+                                      legal_balls += 1
+
+                          innings_rows.append({
+                              "team": team,
+                              "runs": runs,
+                              "wickets": wickets,
+                              "legal_balls": legal_balls
+                          })
+
+                      if len(innings_rows) < 2:
+                          continue
+
+                      dates = info.get("dates", [])
+
+                      matches.append({
+                          "date": str(dates[0]) if dates else "",
+                          "match_type": info.get("match_type", ""),
+                          "teams": teams,
+                          "winner": winner,
+                          "venue": info.get("venue", ""),
+                          "toss": info.get("toss", {}),
+                          "innings": innings_rows
+                      })
+
+                  except Exception as error:
+                      print("Skipped", filename, error)
+
+          matches.sort(key=lambda match: match["date"])
+
+          output = {
+              "source": "Cricsheet",
+              "source_url": "https://cricsheet.org/downloads/",
+              "matches_count": len(matches),
+              "matches": matches
+          }
+
+          os.makedirs("data", exist_ok=True)
+
+          with open(
+              "data/cricsheet-t20-matches.json",
+              "w",
+              encoding="utf-8"
+          ) as file:
+              json.dump(
+                  output,
+                  file,
+                  ensure_ascii=False,
+                  separators=(",", ":")
+              )
+
+          print("T20 matches saved:", len(matches))
+          PY
+
+      - name: Commit dataset
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/cricsheet-t20-matches.json
+          git diff --cached --quiet || git commit -m "Build match-level Cricsheet T20 dataset"
+          git push
