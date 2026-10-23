@@ -86,10 +86,28 @@ function fillSelect(id, value) {
   if (option) select.value = option.value;
 }
 
-function findTeamStats(teamName) {
-  const teams = historicalData?.teams;
+function selectedFormatKey() {
+  const value = (
+    $("format")?.selectedOptions?.[0]?.textContent ||
+    $("format")?.value ||
+    ""
+  ).toLowerCase();
 
-  if (!teams || !teamName) return null;
+  if (value.includes("test")) return "Test";
+  if (value.includes("odi") || value.includes("one day")) return "ODI";
+  if (value.includes("t20")) return "T20";
+
+  return "T20";
+}
+
+function getFormatData() {
+  const key = selectedFormatKey();
+  return historicalData?.formats?.[key]?.teams ?? {};
+}
+
+function findTeamStats(teamName) {
+  const teams = getFormatData();
+  if (!teamName) return null;
 
   const target = teamName.trim().toLowerCase();
 
@@ -101,10 +119,10 @@ function findTeamStats(teamName) {
 
   const aliases = {
     "india": ["india", "india men"],
+    "new zealand": ["new zealand", "new zealand men"],
     "pakistan": ["pakistan", "pakistan men"],
     "australia": ["australia", "australia men"],
     "england": ["england", "england men"],
-    "new zealand": ["new zealand", "new zealand men"],
     "south africa": ["south africa"],
     "sri lanka": ["sri lanka"],
     "bangladesh": ["bangladesh"],
@@ -126,12 +144,13 @@ function findTeamStats(teamName) {
 
 function teamSummary(teamName) {
   const stats = findTeamStats(teamName);
+  const format = selectedFormatKey();
 
   if (!stats) {
     return `
-      <section style="margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:10px">
-        <strong>${esc(teamName)}</strong>
-        <p>Is naam ke liye historical record nahi mila.</p>
+      <section style="margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px">
+        <h4>${esc(teamName)}</h4>
+        <p>${esc(format)} ke liye is team ka record Cricsheet data mein nahi mila.</p>
       </section>
     `;
   }
@@ -139,15 +158,10 @@ function teamSummary(teamName) {
   const matches = Number(stats.matches) || 0;
   const wins = Number(stats.wins) || 0;
   const losses = Number(stats.losses) || 0;
-  const winRate = matches
-    ? (wins / matches * 100).toFixed(1)
-    : "0.0";
+  const winRate = matches ? (wins / matches * 100).toFixed(1) : "0.0";
 
   const avgRuns = Number(stats.innings_batted)
-    ? (
-        Number(stats.runs_scored) /
-        Number(stats.innings_batted)
-      ).toFixed(1)
+    ? (Number(stats.runs_scored) / Number(stats.innings_batted)).toFixed(1)
     : "N/A";
 
   const recent = Array.isArray(stats.recent_results)
@@ -156,10 +170,11 @@ function teamSummary(teamName) {
 
   return `
     <section style="margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px">
-      <h4>${esc(teamName)}</h4>
+      <h4>${esc(teamName)} — ${esc(format)}</h4>
       <p>Historical matches: <strong>${matches.toLocaleString()}</strong></p>
       <p>Wins: <strong>${wins.toLocaleString()}</strong> · Losses: <strong>${losses.toLocaleString()}</strong></p>
-      <p>Overall historical win rate: <strong>${winRate}%</strong></p>
+      <p>Draws: <strong>${Number(stats.draws) || 0}</strong> · No results: <strong>${Number(stats.no_results) || 0}</strong></p>
+      <p>Win rate: <strong>${winRate}%</strong></p>
       <p>Average runs per batting innings: <strong>${avgRuns}</strong></p>
       ${
         recent.length
@@ -189,20 +204,11 @@ async function loadHistoricalData() {
 
     const json = await response.json();
 
-    if (!json.teams || typeof json.teams !== "object") {
-      throw new Error("Historical data format is invalid");
+    if (!json.formats || typeof json.formats !== "object") {
+      throw new Error("Format-wise historical data not found");
     }
 
     historicalData = json;
-
-    const status = $("matches-status");
-    if (status) {
-      status.textContent +=
-        ` Historical data ready: ${Number(
-          json.matches_with_innings || 0
-        ).toLocaleString()} matches.`;
-    }
-
     return true;
   } catch (error) {
     console.error("Historical data could not load:", error);
@@ -224,13 +230,10 @@ async function loadCricketMatches() {
     const response = await fetch("./matches.json?v=" + Date.now());
 
     if (!response.ok) {
-      throw new Error(
-        `Could not load matches.json (${response.status})`
-      );
+      throw new Error(`Could not load matches.json (${response.status})`);
     }
 
     const json = await response.json();
-
     const matches = Array.isArray(json)
       ? json
       : json.data ?? json.matches ?? [];
@@ -240,15 +243,11 @@ async function loadCricketMatches() {
     const upcoming = matches
       .filter(match => {
         const time = Date.parse(kickoff(match));
-        const matchStatus = String(
-          match.status ?? ""
-        ).toLowerCase();
+        const matchStatus = String(match.status ?? "").toLowerCase();
 
         return Number.isFinite(time) &&
           time >= now &&
-          ["scheduled", "upcoming", "not_started"].includes(
-            matchStatus
-          );
+          ["scheduled", "upcoming", "not_started"].includes(matchStatus);
       })
       .sort((a, b) =>
         Date.parse(kickoff(a)) - Date.parse(kickoff(b))
@@ -260,8 +259,7 @@ async function loadCricketMatches() {
       return;
     }
 
-    status.textContent =
-      `${upcoming.length} upcoming matches loaded.`;
+    status.textContent = `${upcoming.length} upcoming matches loaded.`;
 
     list.innerHTML = upcoming.map((match, index) => `
       <article class="match-card" style="margin:12px 0;padding:16px;border:1px solid var(--line);border-radius:12px">
@@ -279,13 +277,10 @@ async function loadCricketMatches() {
         const match = upcoming[Number(button.dataset.index)];
         if (!match) return;
 
-        const teamA = name(match.home);
-        const teamB = name(match.away);
-        const dateValue = kickoff(match);
-        const date = new Date(dateValue);
+        const date = new Date(kickoff(match));
 
-        if ($("a")) $("a").value = teamA;
-        if ($("b")) $("b").value = teamB;
+        if ($("a")) $("a").value = name(match.home);
+        if ($("b")) $("b").value = name(match.away);
 
         fillSelect("format", getFormat(match));
         fillSelect("league", getCompetition(match));
@@ -293,18 +288,12 @@ async function loadCricketMatches() {
         if (!Number.isNaN(date.getTime())) {
           if ($("date")) {
             $("date").value =
-              `${date.getFullYear()}-${String(
-                date.getMonth() + 1
-              ).padStart(2, "0")}-${String(
-                date.getDate()
-              ).padStart(2, "0")}`;
+              `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
           }
 
           if ($("time")) {
             $("time").value =
-              `${String(date.getHours()).padStart(2, "0")}:${String(
-                date.getMinutes()
-              ).padStart(2, "0")}`;
+              `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
           }
         }
 
@@ -314,15 +303,11 @@ async function loadCricketMatches() {
       });
     });
   } catch (error) {
-    status.textContent =
-      `Could not load matches: ${error.message}`;
+    status.textContent = `Could not load matches: ${error.message}`;
   }
 }
 
-$("refresh-matches")?.addEventListener(
-  "click",
-  loadCricketMatches
-);
+$("refresh-matches")?.addEventListener("click", loadCricketMatches);
 
 if ($("form")) {
   $("form").addEventListener("submit", async event => {
@@ -332,32 +317,21 @@ if ($("form")) {
     if (!result) return;
 
     result.hidden = false;
-    result.innerHTML =
-      "<p>Loading historical team records...</p>";
+    result.innerHTML = "<p>Loading format-specific records...</p>";
 
-    if (!historicalData) {
-      await loadHistoricalData();
+    if (!historicalData && !(await loadHistoricalData())) {
+      result.innerHTML = `
+        <p>Historical data load nahi ho saka. Data file aur website deployment check karein.</p>
+      `;
+      return;
     }
 
     const teamA = $("a")?.value?.trim() || "";
     const teamB = $("b")?.value?.trim() || "";
-
-    const format =
-      $("format")?.selectedOptions?.[0]?.textContent?.trim() ||
-      $("format")?.value ||
-      "Not selected";
+    const format = selectedFormatKey();
 
     if (!teamA || !teamB) {
-      result.innerHTML =
-        "<p>Please select both teams first.</p>";
-      return;
-    }
-
-    if (!historicalData) {
-      result.innerHTML = `
-        <h3>${esc(teamA)} vs ${esc(teamB)}</h3>
-        <p>Historical data load nahi ho saka. Repository mein data/cricsheet-team-stats.json file aur website deployment check karein.</p>
-      `;
+      result.innerHTML = "<p>Please select both teams first.</p>";
       return;
     }
 
@@ -368,16 +342,13 @@ if ($("form")) {
       ${teamSummary(teamA)}
       ${teamSummary(teamB)}
       <p style="padding:12px;border-radius:10px;border:1px solid var(--line)">
-        <strong>Prediction status:</strong> Historical records connected hain, lekin data abhi Test, ODI aur T20 ke hisaab se separate nahi hai. Isliye abhi winner ya exact score ki prediction generate nahi ki ja rahi.
+        <strong>Prediction status:</strong> Format-specific historical records connected hain. Abhi validated winner aur exact-score prediction model available nahi hai.
       </p>
     `;
   });
 }
 
-if (
-  "serviceWorker" in navigator &&
-  location.protocol.startsWith("http")
-) {
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   });
@@ -391,4 +362,3 @@ async function initialiseApp() {
 }
 
 initialiseApp();
-  
