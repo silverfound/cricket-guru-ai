@@ -1,3 +1,4 @@
+
 name: Evaluate Cricket Guru T20 Baseline
 
 on:
@@ -9,7 +10,6 @@ permissions:
 jobs:
   evaluate:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,29 +18,27 @@ jobs:
         run: |
           python - <<'PY'
           import json
-          import math
           import os
           from collections import defaultdict
 
           path = "data/cricsheet-t20-matches.json"
-
           with open(path, encoding="utf-8") as f:
               dataset = json.load(f)
 
           matches = dataset.get("matches", [])
 
-          def usable(match):
-              innings = match.get("innings", [])
+          def get_scores(match):
               scores = {}
-
-              for row in innings:
+              for row in match.get("innings", []):
                   team = row.get("team")
                   if team and team not in scores:
                       scores[team] = int(row.get("runs", 0))
+              return scores
 
+          def usable(match):
               teams = match.get("teams", [])
               winner = match.get("winner")
-
+              scores = get_scores(match)
               return (
                   len(teams) == 2
                   and winner in teams
@@ -54,38 +52,41 @@ jobs:
 
           if len(matches) < 100:
               raise SystemExit(
-                  f"Not enough usable matches for evaluation: {len(matches)}"
+                  f"Not enough usable matches: {len(matches)}"
               )
 
           split = int(len(matches) * 0.8)
-          if split <= 0 or split >= len(matches):
-              raise SystemExit("Could not create chronological train/test split.")
-
           ratings = defaultdict(lambda: 1500.0)
           run_history = defaultdict(list)
-
           K = 24
-          correct = 0
-          tested = 0
-          score_errors = []
-          results = []
 
-          def score_for(match, team):
-              for row in match.get("innings", []):
-                  if row.get("team") == team:
-                      return int(row.get("runs", 0))
-              return None
+          total_correct = 0
+          total_tested = 0
+          all_score_errors = []
+          results = []
+          competition_stats = defaultdict(
+              lambda: {
+                  "test_matches": 0,
+                  "winner_correct": 0,
+                  "score_errors": [],
+                  "competition_name": ""
+              }
+          )
+
+          def competition_name(match):
+              name = str(match.get("competition", "")).strip()
+              return name or "Unspecified competition"
 
           for index, match in enumerate(matches):
               teams = match["teams"]
               a, b = teams[0], teams[1]
               winner = match["winner"]
-              score_a = score_for(match, a)
-              score_b = score_for(match, b)
+              scores = get_scores(match)
+              score_a = scores[a]
+              score_b = scores[b]
 
               rating_a = ratings[a]
               rating_b = ratings[b]
-
               expected_a = 1 / (
                   1 + 10 ** ((rating_b - rating_a) / 400)
               )
@@ -94,90 +95,121 @@ jobs:
               history_a = run_history[a]
               history_b = run_history[b]
 
-              predicted_score_a = (
-                  sum(history_a[-10:]) / len(history_a[-10:])
-                  if history_a else None
+              recent_a = history_a[-10:]
+              recent_b = history_b[-10:]
+
+              predicted_a = (
+                  sum(recent_a) / len(recent_a) if recent_a else None
               )
-              predicted_score_b = (
-                  sum(history_b[-10:]) / len(history_b[-10:])
-                  if history_b else None
+              predicted_b = (
+                  sum(recent_b) / len(recent_b) if recent_b else None
               )
 
               if index >= split:
-                  tested += 1
-                  if predicted_winner == winner:
-                      correct += 1
+                  total_tested += 1
+                  is_correct = predicted_winner == winner
+                  total_correct += int(is_correct)
 
-                  if predicted_score_a is not None:
-                      score_errors.append(
-                          abs(predicted_score_a - score_a)
-                      )
+                  comp = competition_name(match)
+                  stat = competition_stats[comp]
+                  stat["competition_name"] = comp
+                  stat["test_matches"] += 1
+                  stat["winner_correct"] += int(is_correct)
 
-                  if predicted_score_b is not None:
-                      score_errors.append(
-                          abs(predicted_score_b - score_b)
-                      )
+                  errors = []
+                  if predicted_a is not None:
+                      errors.append(abs(predicted_a - score_a))
+                  if predicted_b is not None:
+                      errors.append(abs(predicted_b - score_b))
+
+                  stat["score_errors"].extend(errors)
+                  all_score_errors.extend(errors)
 
                   results.append({
                       "date": match.get("date", ""),
+                      "competition": comp,
+                      "match_type": match.get("match_type", ""),
+                      "gender": match.get("gender", "unknown"),
                       "team_a": a,
                       "team_b": b,
                       "actual_winner": winner,
                       "predicted_winner": predicted_winner,
-                      "winner_correct": predicted_winner == winner,
+                      "winner_correct": is_correct,
                       "predicted_score_a": (
-                          round(predicted_score_a, 1)
-                          if predicted_score_a is not None else None
+                          round(predicted_a, 1)
+                          if predicted_a is not None else None
                       ),
                       "actual_score_a": score_a,
                       "predicted_score_b": (
-                          round(predicted_score_b, 1)
-                          if predicted_score_b is not None else None
+                          round(predicted_b, 1)
+                          if predicted_b is not None else None
                       ),
                       "actual_score_b": score_b
                   })
 
               actual_a = 1.0 if winner == a else 0.0
-              new_a = rating_a + K * (actual_a - expected_a)
-              new_b = rating_b - K * (actual_a - expected_a)
-
-              ratings[a] = new_a
-              ratings[b] = new_b
+              change = K * (actual_a - expected_a)
+              ratings[a] = rating_a + change
+              ratings[b] = rating_b - change
 
               run_history[a].append(score_a)
               run_history[b].append(score_b)
 
-          accuracy = (correct / tested * 100) if tested else 0
-          mae = (
-              sum(score_errors) / len(score_errors)
-              if score_errors else None
+          accuracy = (
+              total_correct / total_tested * 100 if total_tested else 0
           )
+          overall_mae = (
+              sum(all_score_errors) / len(all_score_errors)
+              if all_score_errors else None
+          )
+
+          by_competition = []
+          for name, stat in sorted(
+              competition_stats.items(),
+              key=lambda item: item[1]["test_matches"],
+              reverse=True
+          ):
+              count = stat["test_matches"]
+              errors = stat["score_errors"]
+              by_competition.append({
+                  "competition": name,
+                  "test_matches": count,
+                  "winner_correct": stat["winner_correct"],
+                  "winner_accuracy_percent": round(
+                      stat["winner_correct"] / count * 100, 2
+                  ) if count else 0,
+                  "score_predictions_count": len(errors),
+                  "score_mean_absolute_error_runs": round(
+                      sum(errors) / len(errors), 2
+                  ) if errors else None
+              })
 
           report = {
               "model": "Elo winner baseline + recent average score",
               "source": "Cricsheet",
               "matches_available": len(matches),
               "training_matches": split,
-              "test_matches": tested,
-              "winner_correct": correct,
+              "test_matches": total_tested,
+              "winner_correct": total_correct,
               "winner_accuracy_percent": round(accuracy, 2),
-              "score_predictions_count": len(score_errors),
+              "score_predictions_count": len(all_score_errors),
               "score_mean_absolute_error_runs": (
-                  round(mae, 2) if mae is not None else None
+                  round(overall_mae, 2)
+                  if overall_mae is not None else None
               ),
+              "competition_results": by_competition,
               "notes": [
-                  "Matches are sorted by date.",
-                  "The earliest 80 percent are used to initialize training.",
-                  "Test predictions use only results available before each match.",
-                  "Ratings update after each test match result.",
+                  "Chronological 80/20 train-test split.",
+                  "Predictions use only information from earlier matches.",
+                  "Elo ratings update after each match result.",
                   "Score estimates use each team's previous ten recorded innings.",
+                  "Competition groups use Cricsheet event names; missing names are unclassified.",
                   "This is a baseline, not a guarantee of future accuracy."
               ],
               "test_results": results
           }
 
           os.makedirs("data", exist_ok=True)
-
           with open(
               "data/t20-model-evaluation.json",
               "w",
@@ -186,9 +218,17 @@ jobs:
               json.dump(report, f, ensure_ascii=False, indent=2)
 
           print("Training matches:", split)
-          print("Test matches:", tested)
-          print("Winner accuracy:", round(accuracy, 2), "%")
-          print("Score MAE:", mae)
+          print("Test matches:", total_tested)
+          print("Overall winner accuracy:", round(accuracy, 2), "%")
+          print("Overall score MAE:", overall_mae)
+          print("Competition groups:", len(by_competition))
+          for row in by_competition[:15]:
+              print(
+                  row["competition"],
+                  "| matches:", row["test_matches"],
+                  "| accuracy:", row["winner_accuracy_percent"],
+                  "| score MAE:", row["score_mean_absolute_error_runs"]
+              )
           print("Saved data/t20-model-evaluation.json")
           PY
 
@@ -197,5 +237,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/t20-model-evaluation.json
-          git diff --cached --quiet || git commit -m "Add T20 baseline backtest report"
+          git diff --cached --quiet || git commit -m "Add competition-wise T20 evaluation report"
           git push
+          
