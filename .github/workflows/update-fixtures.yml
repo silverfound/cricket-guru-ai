@@ -27,9 +27,7 @@ jobs:
             const key = process.env.BIGBALLSDATA_API_KEY;
 
             if (!key) {
-              throw new Error(
-                "BIGBALLSDATA_API_KEY secret is missing"
-              );
+              throw new Error("BIGBALLSDATA_API_KEY secret is missing");
             }
 
             const today = new Date();
@@ -40,16 +38,13 @@ jobs:
             const end = new Date(today);
             end.setUTCDate(end.getUTCDate() + 7);
 
-            const fmt = (date) =>
-              date.toISOString().slice(0, 10);
+            const fmt = date => date.toISOString().slice(0, 10);
 
             const url =
               "https://api.bigballsdata.com/v1/cricket/matches" +
               `?date=${fmt(start)}:${fmt(end)}&limit=200`;
 
-            console.log(
-              `Requesting matches from ${fmt(start)} to ${fmt(end)}`
-            );
+            console.log(`Requesting matches from ${fmt(start)} to ${fmt(end)}`);
 
             const response = await fetch(url, {
               headers: {
@@ -61,17 +56,14 @@ jobs:
 
             if (!response.ok) {
               throw new Error(
-                `BigBallsData HTTP ${response.status}: ` +
-                text.slice(0, 300)
+                `BigBallsData HTTP ${response.status}: ${text.slice(0, 300)}`
               );
             }
 
             const json = JSON.parse(text);
 
             if (!Array.isArray(json.data)) {
-              throw new Error(
-                "API response did not contain a data array"
-              );
+              throw new Error("API response did not contain a data array");
             }
 
             fs.writeFileSync(
@@ -79,12 +71,10 @@ jobs:
               JSON.stringify(json, null, 2) + "\n"
             );
 
-            const completed = json.data.filter(
-              match =>
-                ["completed", "complete", "finished"]
-                  .includes(
-                    String(match.status || "").toLowerCase()
-                  )
+            const completed = json.data.filter(match =>
+              ["completed", "complete", "finished"].includes(
+                String(match.status || "").toLowerCase()
+              )
             );
 
             console.log(
@@ -95,7 +85,7 @@ jobs:
             if (json.data.length >= 200) {
               console.log(
                 "Notice: API returned 200 matches. " +
-                "The date range may contain additional matches."
+                "Additional matches may exist."
               );
             }
           }
