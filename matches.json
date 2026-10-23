@@ -2002,14 +2002,14 @@
         "logo_url": "https://api.bigballsdata.com/v1/assets/b-Scr2PENNa8vyEipgJ5Q1tk6nUDhlLCRQFBCIHt-1JUa1NVqBWyc_yIHrZ-5IFGMUXDrHlOHSPptcfZLXseRWDwRzkepF0UHVAB63Mebp694fqmhw"
       },
       "kickoff_utc": "2026-10-23T12:00:00.000Z",
-      "status": "live",
+      "status": "finished",
       "score": {
         "home": 169,
-        "away": 149
+        "away": 170
       },
       "linescore": {
         "away": [
-          149
+          170
         ],
         "home": [
           169
@@ -6160,7 +6160,7 @@
     "total": 1101,
     "limit": 200,
     "offset": 0,
-    "request_id": "b9ff366e-11f7-48c5-beb4-0416a60633b8",
+    "request_id": "af127259-91f5-4a3e-8fb5-6d5d45d81794",
     "date_window": {
       "date": "2026-07-25:2026-10-30",
       "timezone": "UTC",

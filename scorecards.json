@@ -138,5 +138,145 @@
       "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
     },
     "error": null
+  },
+  "bb79a826-ac73-4849-9983-9485474ca67f": {
+    "data": {
+      "match_id": "bb79a826-ac73-4849-9983-9485474ca67f",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "a3cd5b79-9fc5-4c68-9e6d-a84392c0f6ed",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "535d08bd-c4b7-41be-86e2-05327a2b82c6": {
+    "data": {
+      "match_id": "535d08bd-c4b7-41be-86e2-05327a2b82c6",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "c5f7197b-ac60-460a-9ad0-fb4100c1e2b6",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "7cb9fd34-6ed8-49a1-a7ff-b4f5dc2ab414": {
+    "data": {
+      "match_id": "7cb9fd34-6ed8-49a1-a7ff-b4f5dc2ab414",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "7c6ac345-e6e8-404f-95e1-91b6c28cef71",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "4b4d7cd1-1d18-4836-8315-2eb1f2d7ceb9": {
+    "data": {
+      "match_id": "4b4d7cd1-1d18-4836-8315-2eb1f2d7ceb9",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "5fffb1b1-6564-4d7e-8b9d-e5664f12a615",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "97489f7f-0c6c-4548-bc3e-df23dbee7441": {
+    "data": {
+      "match_id": "97489f7f-0c6c-4548-bc3e-df23dbee7441",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "58af260a-e688-45c6-bb8e-769767b9a9a4",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "225346bf-47d7-4491-8545-05b5e7875e61": {
+    "data": {
+      "match_id": "225346bf-47d7-4491-8545-05b5e7875e61",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "fbcb20c2-3c5d-42ab-b3b5-45f0cc09172f",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "f1d09147-8d8e-446a-af63-08cecd1c1285": {
+    "data": {
+      "match_id": "f1d09147-8d8e-446a-af63-08cecd1c1285",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "c160fae0-0916-4ab5-bcff-2e16ad735cea",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "94211aaa-7475-4ea6-8bf8-bffd531d41b6": {
+    "data": {
+      "match_id": "94211aaa-7475-4ea6-8bf8-bffd531d41b6",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "36dda674-60a5-46d3-b4dd-d81dcdfefcaa",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "9724c4b3-1ef7-4588-b885-741e564093f0": {
+    "data": {
+      "match_id": "9724c4b3-1ef7-4588-b885-741e564093f0",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "715a74e1-03a2-4fb2-b7b7-38c107a9b584",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
+  },
+  "ba91ef2b-f432-4119-9bd2-4fd5746f7614": {
+    "data": {
+      "match_id": "ba91ef2b-f432-4119-9bd2-4fd5746f7614",
+      "innings": []
+    },
+    "meta": {
+      "source": "stored",
+      "cached": false,
+      "available": false,
+      "request_id": "2223fe41-d4ff-4b0f-8b5f-436ff925e472",
+      "note": "No stored innings scorecard exists for this match. The match record itself, including teams, status, and per-side runs in `linescore`, is available at GET /v1/cricket/matches/{id}."
+    },
+    "error": null
   }
 }
