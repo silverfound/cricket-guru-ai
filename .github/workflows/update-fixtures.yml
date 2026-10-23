@@ -1,4 +1,3 @@
-
 name: Update Cricket Fixtures
 
 on:
@@ -31,8 +30,14 @@ jobs:
               throw new Error("BIGBALLSDATA_API_KEY secret is missing");
             }
 
-            const url =
-              "https://api.bigballsdata.com/v1/cricket/matches?limit=200";
+            const today = new Date();
+            const end = new Date(today);
+            end.setUTCDate(end.getUTCDate() + 7);
+
+            const fmt = (date) => date.toISOString().slice(0, 10);
+            const url = `https://api.bigballsdata.com/v1/cricket/matches?date=${fmt(today)}:${fmt(end)}&limit=200`;
+
+            console.log("Requesting cricket fixtures for the next 7 days.");
 
             const response = await fetch(url, {
               headers: {
@@ -62,7 +67,7 @@ jobs:
             console.log(`Saved ${json.data.length} cricket matches.`);
           }
 
-          main().catch(error => {
+          main().catch((error) => {
             console.error(error.message);
             process.exit(1);
           });
@@ -75,4 +80,3 @@ jobs:
           git add matches.json
           git diff --cached --quiet || git commit -m "Update cricket fixtures"
           git push
-          
