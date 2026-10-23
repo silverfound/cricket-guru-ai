@@ -20,23 +20,109 @@ function esc(s) {
   }[c]));
 }
 
+function teamName(team) {
+  if (typeof team === "string") return team;
+  return team?.name ?? team?.display_name ?? "Unknown team";
+}
+
+function matchDate(match) {
+  const value = match.kickoff ?? match.date ?? match.start_time ?? "";
+  const date = new Date(value);
+  return value && !Number.isNaN(date.getTime())
+    ? date.toLocaleString()
+    : "Date unavailable";
+}
+
 async function loadCricketMatches() {
+  const status = $("matches-status");
+  const list = $("matches-list");
+
+  if (!status || !list) return;
+
+  status.textContent = "Loading upcoming matches...";
+  list.innerHTML = "";
+
   try {
-    const response = await fetch(`${API}/matches?limit=10`);
+    const response = await fetch(`${API}/matches?limit=50`);
     if (!response.ok) throw new Error(`API status ${response.status}`);
 
     const json = await response.json();
-    const matches = Array.isArray(json) ? json : json.data;
+    const matches = Array.isArray(json)
+      ? json
+      : Array.isArray(json.data)
+        ? json.data
+        : Array.isArray(json.matches)
+          ? json.matches
+          : [];
 
-    if (!Array.isArray(matches)) {
-      throw new Error("Unexpected API response");
+    if (!matches.length) {
+      status.textContent = "No matches returned by the data provider.";
+      return;
     }
 
-    return { matches, error: null };
+    const now = Date.now();
+
+    const upcoming = matches
+      .filter(m => {
+        const statusText = String(m.status ?? "").toLowerCase();
+        const dateValue = m.kickoff ?? m.date ?? m.start_time;
+        const time = Date.parse(dateValue ?? "");
+
+        return (
+          Number.isFinite(time) &&
+          time >= now &&
+          !["completed", "finished", "cancelled", "abandoned", "live", "in progress"].includes(statusText)
+        );
+      })
+      .sort((x, y) =>
+        Date.parse(x.kickoff ?? x.date ?? x.start_time) -
+        Date.parse(y.kickoff ?? y.date ?? y.start_time)
+      );
+
+    status.textContent = upcoming.length
+      ? `${upcoming.length} upcoming matches found in the matches returned by the API.`
+      : "No future fixtures found in this API response. More fixtures may exist beyond the returned results.";
+
+    list.innerHTML = upcoming.map((m, index) => `
+      <article class="match-card" style="margin:12px 0;padding:16px;border:1px solid var(--line);border-radius:12px">
+        <p class="eyebrow">${esc(m.league ?? m.competition ?? "Cricket")}</p>
+        <h3>${esc(teamName(m.home ?? m.home_team))} <em>vs</em> ${esc(teamName(m.away ?? m.away_team))}</h3>
+        <p class="meta">${esc(matchDate(m))}</p>
+        <p class="meta">Status: ${esc(m.status ?? "Scheduled")}</p>
+        <button class="button choose-match" type="button" data-match-index="${index}">
+          Analyze this match →
+        </button>
+      </article>
+    `).join("");
+
+    list.querySelectorAll(".choose-match").forEach(button => {
+      button.addEventListener("click", () => {
+        const m = upcoming[Number(button.dataset.matchIndex)];
+        $("a").value = teamName(m.home ?? m.home_team);
+        $("b").value = teamName(m.away ?? m.away_team);
+
+        const competition = String(m.league ?? m.competition ?? "").toLowerCase();
+        if (competition.includes("ipl")) $("league").value = "IPL";
+        else if (competition.includes("psl")) $("league").value = "PSL";
+        else if (competition.includes("t20i")) $("format").value = "T20 International";
+        else if (competition.includes("odi")) $("format").value = "ODI International";
+
+        const dateValue = m.kickoff ?? m.date ?? m.start_time;
+        const date = new Date(dateValue);
+        if (!Number.isNaN(date.getTime())) {
+          $("date").value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+          $("time").value = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+        }
+
+        $("lab").scrollIntoView({ behavior: "smooth" });
+      });
+    });
   } catch (error) {
-    return { matches: [], error: error.message };
+    status.textContent = `Could not load fixtures: ${error.message}`;
   }
 }
+
+$("refresh-matches")?.addEventListener("click", loadCricketMatches);
 
 $("form").addEventListener("submit", async e => {
   e.preventDefault();
@@ -62,81 +148,49 @@ $("form").addEventListener("submit", async e => {
   r.innerHTML = "<p>Loading cricket data...</p>";
   r.scrollIntoView({ behavior: "smooth" });
 
-  const { matches, error } = await loadCricketMatches();
+  try {
+    const response = await fetch(`${API}/matches?limit=50`);
+    if (!response.ok) throw new Error(`API status ${response.status}`);
 
-  const teamA = a.toLowerCase();
-  const teamB = b.toLowerCase();
+    const json = await response.json();
+    const matches = Array.isArray(json)
+      ? json
+      : Array.isArray(json.data)
+        ? json.data
+        : Array.isArray(json.matches)
+          ? json.matches
+          : [];
 
-  const matching = matches.filter(m => {
-    const home = String(m.home?.name ?? m.home ?? "").toLowerCase();
-    const away = String(m.away?.name ?? m.away ?? "").toLowerCase();
+    const matching = matches.filter(m => {
+      const home = teamName(m.home ?? m.home_team).toLowerCase();
+      const away = teamName(m.away ?? m.away_team).toLowerCase();
+      return (
+        (home.includes(a.toLowerCase()) && away.includes(b.toLowerCase())) ||
+        (home.includes(b.toLowerCase()) && away.includes(a.toLowerCase()))
+      );
+    });
 
-    return (
-      (home.includes(teamA) && away.includes(teamB)) ||
-      (home.includes(teamB) && away.includes(teamA))
-    );
-  });
-
-  const liveData = error
-    ? `<p><b>Live data:</b> Could not load matches. ${esc(error)}</p>`
-    : `
-      <p><b>API connection:</b> Connected successfully.</p>
-      <p><b>Matches returned:</b> ${matches.length}</p>
-      ${
-        matching.length
-          ? matching.map(m => `
-              <p>
-                <b>${esc(m.home?.name ?? m.home)} vs
-                ${esc(m.away?.name ?? m.away)}</b><br>
-                Status: ${esc(m.status ?? "Unknown")}<br>
-                Score: ${esc(
-                  m.score
-                    ? `${m.score.home ?? "-"} / ${m.score.away ?? "-"}`
-                    : "Not available"
-                )}<br>
-                Date: ${esc(m.kickoff ?? m.date ?? "Not available")}
-              </p>
-            `).join("")
-          : `<p>No exact match between these teams was found in the 10 matches returned by the API. This does not prove the fixture is unavailable.</p>`
-      }
-      <p><b>Recent matches from API:</b></p>
-      ${
-        matches.slice(0, 5).map(m => `
-          <p>${esc(m.home?.name ?? m.home ?? "Unknown")}
-          vs ${esc(m.away?.name ?? m.away ?? "Unknown")}
-          — ${esc(m.status ?? "Unknown")}</p>
-        `).join("")
-      }
-    `;
-
-  r.innerHTML = `
-    <p class="eyebrow">CRICKET GURU AI · MATCH REPORT</p>
-    <h3>${esc(a)} <em>vs</em> ${esc(b)}</h3>
-    <p class="meta">
-      ${esc($("format").value)} · ${esc($("league").value)}<br>
+    r.innerHTML = `
+      <p class="eyebrow">CRICKET GURU AI · MATCH REPORT</p>
+      <h3>${esc(a)} <em>vs</em> ${esc(b)}</h3>
+      <p class="meta">${esc($("format").value)} · ${esc($("league").value)}<br>
       Day: ${esc(day)} · Date: ${esc(date || "Not entered")}<br>
       Time: ${esc($("time").value || "Not entered")}<br>
-      Ground: ${esc($("ground").value || "Not entered")}
-    </p>
-    <hr style="border-color:var(--line)">
-    ${liveData}
-    <hr style="border-color:var(--line)">
-    <p><b>Winner probability:</b> Not available yet; a validated model is still needed.</p>
-    <p><b>Expected score:</b> Not available yet; no score will be invented.</p>
-    <p><b>Captain names:</b>
-      ${esc($("ca").value || "Not entered")} /
-      ${esc($("cb").value || "Not entered")}
-    </p>
-    <p><b>Date numerology:</b> ${num}
-      <span class="meta">(symbolic date-number reduction only)</span>
-    </p>
-    <p class="meta">
-      Abjad, astrology and numerology are symbolic features, not
-      scientifically validated prediction methods.
-    </p>
-  `;
-
-  r.scrollIntoView({ behavior: "smooth" });
+      Ground: ${esc($("ground").value || "Not entered")}</p>
+      <hr style="border-color:var(--line)">
+      <p><b>API connection:</b> Connected successfully.</p>
+      <p><b>Matches returned:</b> ${matches.length}</p>
+      <p><b>Exact team match found:</b> ${matching.length ? "Yes" : "Not in returned results"}</p>
+      ${matching.map(m => `<p>${esc(teamName(m.home ?? m.home_team))} vs ${esc(teamName(m.away ?? m.away_team))} — ${esc(m.status ?? "Unknown")} — ${esc(matchDate(m))}</p>`).join("")}
+      <p><b>Winner probability:</b> Not available yet; a validated prediction model is still needed.</p>
+      <p><b>Expected score:</b> Not available yet.</p>
+      <p><b>Captain names:</b> ${esc($("ca").value || "Not entered")} / ${esc($("cb").value || "Not entered")}</p>
+      <p><b>Date numerology:</b> ${num} <span class="meta">(symbolic only)</span></p>
+      <p class="meta">Abjad, astrology and numerology are symbolic features, not scientifically validated prediction methods.</p>
+    `;
+  } catch (error) {
+    r.innerHTML = `<p>Could not load cricket data: ${esc(error.message)}</p>`;
+  }
 });
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
@@ -144,3 +198,5 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   });
 }
+
+loadCricketMatches();
