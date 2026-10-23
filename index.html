@@ -1,18 +1,155 @@
+
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071321"><title>Cricket Guru AI</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="styles.css"></head>
-<body><header><a class="brand" href="#"><span>✦</span><div>CRICKET <b>GURU AI</b><small>SMART PREDICTIONS. DEEPER INSIGHTS.</small></div></a><label class="pill">ODI · T20I · MAJOR T20</label></header>
-<main><section class="hero"><div><p class="eyebrow">CRICKET ANALYSIS ENGINE</p><h1>Read the match.<br><em>Not just the odds.</em></h1><p class="muted">Cricket statistics, score estimates, Abjad and numerology-inspired symbolic insights in one place.</p><a class="button" href="#lab">Analyze a match ↓</a></div><div class="art"><div class="orbit"></div><div class="ball"></div><div class="stumps"><i></i><i></i><i></i></div></div></section>
-<section class="coverage"><div><b>ODI</b><small>International only</small></div><div><b>T20I</b><small>International only</small></div><div><b>MAJOR T20</b><small>Franchise leagues</small></div></section>
-<section id="upcoming" class="section">
-  <p class="eyebrow">LIVE FIXTURES</p>
-  <h2>Upcoming matches</h2>
-  <p class="muted">Matches are loaded from the cricket data service.</p>
-  <div id="matches-status" class="muted">Loading upcoming matches...</div>
-  <div id="matches-list"></div>
-  <button id="refresh-matches" class="button" type="button">
-    Refresh matches ↻
-  </button>
-</section>
-  <section id="lab" class="section"><p class="eyebrow">MATCH LAB</p><h2>Build your match analysis</h2><p class="muted">Starter demo. Live fixtures and a trained historical model are not connected yet.</p>
-<form id="form"><label>Format<select id="format"><option>ODI International</option><option>T20 International</option><option>Major T20 League</option></select></label><label>Competition<select id="league"><option>International</option><option>IPL</option><option>PSL</option><option>BBL / WBBL</option><option>CPL / WCPL</option><option>ILT20 (UAE)</option><option>Major League Cricket</option><option>SA20</option><option>BPL</option><option>Lanka Premier League</option><option>WPL</option><option>The Hundred</option><option>Other major T20 league</option></select></label><label>Team A<input id="a" placeholder="e.g. Pakistan" required></label><label>Team B<input id="b" placeholder="e.g. India" required></label><label>Captain A<input id="ca" placeholder="Optional"></label><label>Captain B<input id="cb" placeholder="Optional"></label><label>Match date<input id="date" type="date"></label><label>Start time<input id="time" type="time"></label><label class="wide">Ground / stadium<input id="ground" placeholder="e.g. Dubai International Cricket Stadium"></label><button class="button wide">Generate preliminary analysis →</button></form><div id="result" class="result" hidden></div></section>
-<section class="cards"><article><span>◎</span><h3>Cricket statistics</h3><p>Form, venue records, toss and player data planned for the connected model.</p></article><article><span>✧</span><h3>Abjad & numerology</h3><p>Name and date-based symbolic calculations, separate from statistical predictions.</p></article><article><span>♧</span><h3>Accuracy tracker</h3><p>Historical predictions will be checked against real results after data integration.</p></article></section><aside><b>Transparent by design</b><p>Numerology and astrology are not scientifically validated ways to predict cricket results. Demo estimates are illustrative, not betting advice or guaranteed outcomes.</p></aside></main><footer><b>CRICKET GURU AI</b><span>Independent project · starter v0.1</span></footer><script src="app.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071321">
+  <title>Cricket Guru AI</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg">
+  <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+<header>
+  <a class="brand" href="#">
+    <span>✦</span>
+    <div>CRICKET <b>GURU AI</b><small>SMART PREDICTIONS. DEEPER INSIGHTS.</small></div>
+  </a>
+  <label class="pill">ODI · T20I · MAJOR T20</label>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">CRICKET ANALYSIS ENGINE</p>
+      <h1>Read the match.<br><em>Not just the odds.</em></h1>
+      <p class="muted">Cricket statistics, score estimates, Abjad and numerology-inspired symbolic insights in one place.</p>
+      <a class="button" href="#lab">Analyze a match ↓</a>
+    </div>
+    <div class="art">
+      <div class="orbit"></div>
+      <div class="ball"></div>
+      <div class="stumps"><i></i><i></i><i></i></div>
+    </div>
+  </section>
+
+  <section class="coverage">
+    <div><b>ODI</b><small>International only</small></div>
+    <div><b>T20I</b><small>International only</small></div>
+    <div><b>MAJOR T20</b><small>Franchise leagues</small></div>
+  </section>
+
+  <section id="upcoming" class="section">
+    <p class="eyebrow">LIVE FIXTURES</p>
+    <h2>Upcoming matches</h2>
+    <p class="muted">Matches are loaded from the cricket data service.</p>
+    <div id="matches-status" class="muted">Loading matches...</div>
+    <div id="matches-list"></div>
+    <button id="refresh-matches" class="button" type="button">
+      Refresh matches ↻
+    </button>
+  </section>
+
+  <section id="lab" class="section">
+    <p class="eyebrow">MATCH LAB</p>
+    <h2>Build your match analysis</h2>
+    <p class="muted">Live fixtures are being connected. A validated historical prediction model is not connected yet.</p>
+
+    <form id="form">
+      <label>Format
+        <select id="format">
+          <option>ODI International</option>
+          <option>T20 International</option>
+          <option>Major T20 League</option>
+        </select>
+      </label>
+
+      <label>Competition
+        <select id="league">
+          <option>International</option>
+          <option>IPL</option>
+          <option>PSL</option>
+          <option>BBL / WBBL</option>
+          <option>CPL / WCPL</option>
+          <option>ILT20 (UAE)</option>
+          <option>Major League Cricket</option>
+          <option>SA20</option>
+          <option>BPL</option>
+          <option>Lanka Premier League</option>
+          <option>WPL</option>
+          <option>The Hundred</option>
+          <option>Other major T20 league</option>
+        </select>
+      </label>
+
+      <label>Team A
+        <input id="a" placeholder="e.g. Pakistan" required>
+      </label>
+
+      <label>Team B
+        <input id="b" placeholder="e.g. India" required>
+      </label>
+
+      <label>Captain A
+        <input id="ca" placeholder="Optional">
+      </label>
+
+      <label>Captain B
+        <input id="cb" placeholder="Optional">
+      </label>
+
+      <label>Match date
+        <input id="date" type="date">
+      </label>
+
+      <label>Start time
+        <input id="time" type="time">
+      </label>
+
+      <label class="wide">Ground / stadium
+        <input id="ground" placeholder="e.g. Dubai International Cricket Stadium">
+      </label>
+
+      <button class="button wide" type="submit">
+        Generate preliminary analysis →
+      </button>
+    </form>
+
+    <div id="result" class="result" hidden></div>
+  </section>
+
+  <section class="cards">
+    <article>
+      <span>◎</span>
+      <h3>Cricket statistics</h3>
+      <p>Form, venue records, toss and player data planned for the connected model.</p>
+    </article>
+
+    <article>
+      <span>✧</span>
+      <h3>Abjad & numerology</h3>
+      <p>Name and date-based symbolic calculations, separate from statistical predictions.</p>
+    </article>
+
+    <article>
+      <span>♧</span>
+      <h3>Accuracy tracker</h3>
+      <p>Historical predictions will be checked against real results after data integration.</p>
+    </article>
+  </section>
+
+  <aside>
+    <b>Transparent by design</b>
+    <p>Numerology and astrology are not scientifically validated ways to predict cricket results. Estimates are not guaranteed outcomes or betting advice.</p>
+  </aside>
+</main>
+
+<footer>
+  <b>CRICKET GURU AI</b>
+  <span>Independent project · starter v0.1</span>
+</footer>
+
+<script src="app.js?v=2"></script>
+</body>
+</html>
