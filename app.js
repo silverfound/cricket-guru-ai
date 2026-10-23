@@ -31,6 +31,7 @@ async function loadCricketMatches() {
   if (!status || !list) return;
 
   status.textContent = "Loading matches...";
+ console.log("Cricket Guru: fixture loading started");
   list.innerHTML = "";
 
   try {
