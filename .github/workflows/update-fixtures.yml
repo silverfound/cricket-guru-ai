@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch cricket matches
+      - name: Fetch historical and upcoming cricket matches
         env:
           BIGBALLSDATA_API_KEY: ${{ secrets.BIGBALLSDATA_API_KEY }}
         run: |
@@ -27,17 +27,29 @@ jobs:
             const key = process.env.BIGBALLSDATA_API_KEY;
 
             if (!key) {
-              throw new Error("BIGBALLSDATA_API_KEY secret is missing");
+              throw new Error(
+                "BIGBALLSDATA_API_KEY secret is missing"
+              );
             }
 
             const today = new Date();
+
+            const start = new Date(today);
+            start.setUTCDate(start.getUTCDate() - 90);
+
             const end = new Date(today);
             end.setUTCDate(end.getUTCDate() + 7);
 
-            const fmt = (date) => date.toISOString().slice(0, 10);
-            const url = `https://api.bigballsdata.com/v1/cricket/matches?date=${fmt(today)}:${fmt(end)}&limit=200`;
+            const fmt = (date) =>
+              date.toISOString().slice(0, 10);
 
-            console.log("Requesting cricket fixtures for the next 7 days.");
+            const url =
+              "https://api.bigballsdata.com/v1/cricket/matches" +
+              `?date=${fmt(start)}:${fmt(end)}&limit=200`;
+
+            console.log(
+              `Requesting matches from ${fmt(start)} to ${fmt(end)}`
+            );
 
             const response = await fetch(url, {
               headers: {
@@ -49,14 +61,17 @@ jobs:
 
             if (!response.ok) {
               throw new Error(
-                `BigBallsData returned HTTP ${response.status}: ${text.slice(0, 300)}`
+                `BigBallsData HTTP ${response.status}: ` +
+                text.slice(0, 300)
               );
             }
 
             const json = JSON.parse(text);
 
             if (!Array.isArray(json.data)) {
-              throw new Error("API response did not contain a data array");
+              throw new Error(
+                "API response did not contain a data array"
+              );
             }
 
             fs.writeFileSync(
@@ -64,46 +79,24 @@ jobs:
               JSON.stringify(json, null, 2) + "\n"
             );
 
-            console.log(`Saved ${json.data.length} cricket matches.`);
-          }
+            const completed = json.data.filter(
+              match =>
+                ["completed", "complete", "finished"]
+                  .includes(
+                    String(match.status || "").toLowerCase()
+                  )
+            );
 
-          main().catch((error) => {
-            console.error(error.message);
-            process.exit(1);
-          });
-          NODE
+            console.log(
+              `Saved ${json.data.length} matches; ` +
+              `${completed.length} appear completed by status.`
+            );
 
-      - name: Check match details availability
-        env:
-          BIGBALLSDATA_API_KEY: ${{ secrets.BIGBALLSDATA_API_KEY }}
-        run: |
-          node <<'NODE'
-          async function main() {
-            const id = "80794780-b443-40c9-9b27-eecb95f60f4f";
-            const url = `https://api.bigballsdata.com/v1/cricket/matches/${id}`;
-
-            const response = await fetch(url, {
-              headers: {
-                Authorization: `Bearer ${process.env.BIGBALLSDATA_API_KEY}`
-              }
-            });
-
-            const text = await response.text();
-            console.log("HTTP status:", response.status);
-
-            if (!response.ok) {
-              console.log("Details request failed:", text.slice(0, 300));
-              return;
-            }
-
-            const json = JSON.parse(text);
-            const match = json.data ?? json.match ?? json;
-            console.log("Available match fields:", Object.keys(match));
-
-            for (const key of ["venue", "ground", "stadium", "home", "away", "lineups", "lineup", "squads", "captains"]) {
-              if (match[key] !== undefined) {
-                console.log(`${key}:`, JSON.stringify(match[key]).slice(0, 1000));
-              }
+            if (json.data.length >= 200) {
+              console.log(
+                "Notice: API returned 200 matches. " +
+                "The date range may contain additional matches."
+              );
             }
           }
 
@@ -112,11 +105,11 @@ jobs:
             process.exit(1);
           });
           NODE
-          
+
       - name: Commit updated fixtures
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add matches.json
-          git diff --cached --quiet || git commit -m "Update cricket fixtures"
+          git diff --cached --quiet || git commit -m "Update historical and upcoming cricket matches"
           git push
