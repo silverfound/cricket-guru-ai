@@ -1,3 +1,4 @@
+
 name: Update Cricket Fixtures
 
 on:
@@ -16,78 +17,115 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch historical and upcoming cricket matches
+      - name: Fetch matches and cache scorecards
         env:
           BIGBALLSDATA_API_KEY: ${{ secrets.BIGBALLSDATA_API_KEY }}
         run: |
           node <<'NODE'
           const fs = require("fs");
 
-          async function main() {
-            const key = process.env.BIGBALLSDATA_API_KEY;
+          const readJson = (file, fallback) => {
+            try {
+              return JSON.parse(fs.readFileSync(file, "utf8"));
+            } catch {
+              return fallback;
+            }
+          };
 
-            if (!key) {
-              throw new Error("BIGBALLSDATA_API_KEY secret is missing");
+          const writeJson = (file, value) => {
+            fs.writeFileSync(file, JSON.stringify(value, null, 2) + "\n");
+          };
+
+          async function api(url, key) {
+            const response = await fetch(url, {
+              headers: { Authorization: `Bearer ${key}` }
+            });
+            const text = await response.text();
+
+            if (!response.ok) {
+              throw new Error(`API HTTP ${response.status}: ${text.slice(0, 200)}`);
             }
 
-            const today = new Date();
+            return JSON.parse(text);
+          }
 
+          async function main() {
+            const key = process.env.BIGBALLSDATA_API_KEY;
+            if (!key) throw new Error("BIGBALLSDATA_API_KEY secret is missing");
+
+            const today = new Date();
             const start = new Date(today);
             start.setUTCDate(start.getUTCDate() - 90);
 
             const end = new Date(today);
             end.setUTCDate(end.getUTCDate() + 7);
 
-            const fmt = date => date.toISOString().slice(0, 10);
+            const fmt = d => d.toISOString().slice(0, 10);
+            const base = "https://api.bigballsdata.com/v1/cricket";
 
-            const url =
-              "https://api.bigballsdata.com/v1/cricket/matches" +
-              `?date=${fmt(start)}:${fmt(end)}&limit=200`;
+            const url = `${base}/matches?date=${fmt(start)}:${fmt(end)}&limit=200`;
+            const response = await api(url, key);
+            const matches = response.data;
 
-            console.log(`Requesting matches from ${fmt(start)} to ${fmt(end)}`);
+            if (!Array.isArray(matches)) {
+              throw new Error("Matches response has no data array");
+            }
 
-            const response = await fetch(url, {
-              headers: {
-                Authorization: `Bearer ${key}`
+            writeJson("matches.json", response);
+
+            const history = readJson("history-matches.json", []);
+            const historyMap = new Map(
+              (Array.isArray(history) ? history : [])
+                .filter(m => m && m.id)
+                .map(m => [m.id, m])
+            );
+
+            for (const match of matches) {
+              if (match && match.id) historyMap.set(match.id, match);
+            }
+
+            const allHistory = [...historyMap.values()];
+            writeJson("history-matches.json", allHistory);
+
+            const scorecards = readJson("scorecards.json", {});
+            const completedStatuses = [
+              "completed", "complete", "finished", "final", "ended"
+            ];
+
+            const completed = allHistory.filter(match =>
+              completedStatuses.includes(String(match.status || "").toLowerCase())
+            );
+
+            const missing = completed.filter(match =>
+              match.id && !Object.prototype.hasOwnProperty.call(scorecards, match.id)
+            );
+
+            const batch = missing.slice(0, 10);
+            let saved = 0;
+
+            for (const match of batch) {
+              try {
+                const result = await api(`${base}/matches/${match.id}/scorecard`, key);
+                if (result && (result.data !== undefined || result.scorecard !== undefined)) {
+                  scorecards[match.id] = result;
+                  saved++;
+                  console.log(`Cached scorecard for ${match.id}`);
+                } else {
+                  console.log(`Scorecard response was empty for ${match.id}; will retry later`);
+                }
+              } catch (error) {
+                console.log(`Scorecard fetch failed for ${match.id}: ${error.message}`);
               }
-            });
-
-            const text = await response.text();
-
-            if (!response.ok) {
-              throw new Error(
-                `BigBallsData HTTP ${response.status}: ${text.slice(0, 300)}`
-              );
             }
 
-            const json = JSON.parse(text);
+            writeJson("scorecards.json", scorecards);
 
-            if (!Array.isArray(json.data)) {
-              throw new Error("API response did not contain a data array");
-            }
-
-            fs.writeFileSync(
-              "matches.json",
-              JSON.stringify(json, null, 2) + "\n"
-            );
-
-            const completed = json.data.filter(match =>
-              ["completed", "complete", "finished"].includes(
-                String(match.status || "").toLowerCase()
-              )
-            );
-
-            console.log(
-              `Saved ${json.data.length} matches; ` +
-              `${completed.length} appear completed by status.`
-            );
-
-            if (json.data.length >= 200) {
-              console.log(
-                "Notice: API returned 200 matches. " +
-                "Additional matches may exist."
-              );
-            }
+            console.log(`Fixtures received: ${matches.length}`);
+            console.log(`Historical matches saved: ${allHistory.length}`);
+            console.log(`Completed matches found: ${completed.length}`);
+            console.log(`New scorecards cached this run: ${saved}`);
+            console.log(`Scorecards cached in total: ${Object.keys(scorecards).length}`);
+            console.log(`Completed matches still missing scorecards: ${Math.max(0, missing.length - saved)}`);
           }
 
           main().catch(error => {
@@ -96,10 +134,11 @@ jobs:
           });
           NODE
 
-      - name: Commit updated fixtures
+      - name: Commit cricket data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add matches.json
-          git diff --cached --quiet || git commit -m "Update historical and upcoming cricket matches"
+          git add matches.json history-matches.json scorecards.json
+          git diff --cached --quiet || git commit -m "Update cricket history and scorecards"
           git push
+          
