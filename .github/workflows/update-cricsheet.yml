@@ -1,0 +1,184 @@
+
+name: Update Cricsheet Historical Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "41 3 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  build-history:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download and process Cricsheet archive
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.request
+          import zipfile
+          import io
+          import os
+          from collections import defaultdict
+
+          url = "https://cricsheet.org/downloads/all_json.zip"
+          print("Downloading official Cricsheet JSON archive...")
+
+          request = urllib.request.Request(
+              url,
+              headers={"User-Agent": "CricketGuruAI/1.0"}
+          )
+
+          with urllib.request.urlopen(request, timeout=180) as response:
+              archive_bytes = response.read()
+
+          print(f"Downloaded {len(archive_bytes) / 1024 / 1024:.1f} MB")
+
+          team_stats = defaultdict(lambda: {
+              "matches": 0,
+              "wins": 0,
+              "losses": 0,
+              "runs_scored": 0,
+              "innings_batted": 0,
+              "wickets_lost": 0,
+              "runs_conceded": 0,
+              "innings_bowled": 0,
+              "recent_results": []
+          })
+
+          match_count = 0
+          usable_count = 0
+
+          with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
+              files = [
+                  name for name in archive.namelist()
+                  if name.lower().endswith(".json")
+                  and "/" not in name.strip("/")
+              ]
+
+              for name in files:
+                  try:
+                      with archive.open(name) as file:
+                          match = json.load(file)
+
+                      info = match.get("info", {})
+                      teams = info.get("teams", [])
+                      innings_list = match.get("innings", [])
+
+                      if len(teams) != 2:
+                          continue
+
+                      match_count += 1
+                      totals = defaultdict(lambda: {
+                          "runs": 0,
+                          "wickets": 0,
+                          "balls": 0
+                      })
+
+                      for innings in innings_list:
+                          batting_team = innings.get("team")
+                          if batting_team not in teams:
+                              continue
+
+                          for over in innings.get("overs", []):
+                              for delivery in over.get("deliveries", []):
+                                  runs = delivery.get("runs", {})
+                                  extras = delivery.get("extras", {})
+
+                                  totals[batting_team]["runs"] += int(
+                                      runs.get("total", 0)
+                                  )
+
+                                  totals[batting_team]["wickets"] += len(
+                                      delivery.get("wickets", [])
+                                  )
+
+                                  if not any(
+                                      kind in extras
+                                      for kind in ("wides", "noballs")
+                                  ):
+                                      totals[batting_team]["balls"] += 1
+
+                      if not totals:
+                          continue
+
+                      usable_count += 1
+                      winner = info.get("outcome", {}).get("winner")
+                      date = (info.get("dates") or [""])[0]
+
+                      for team in teams:
+                          stats = team_stats[team]
+                          stats["matches"] += 1
+
+                          if team in totals:
+                              stats["runs_scored"] += totals[team]["runs"]
+                              stats["innings_batted"] += 1
+                              stats["wickets_lost"] += totals[team]["wickets"]
+
+                          opponent = next(t for t in teams if t != team)
+                          if opponent in totals:
+                              stats["runs_conceded"] += totals[opponent]["runs"]
+                              stats["innings_bowled"] += 1
+
+                          result = (
+                              "win" if winner == team else
+                              "loss" if winner in teams and winner != team else
+                              "no_result"
+                          )
+
+                          if result == "win":
+                              stats["wins"] += 1
+                          elif result == "loss":
+                              stats["losses"] += 1
+
+                          stats["recent_results"].append({
+                              "date": date,
+                              "opponent": opponent,
+                              "result": result,
+                              "runs": totals[team]["runs"],
+                              "opponent_runs": totals[opponent]["runs"]
+                          })
+
+                  except Exception as error:
+                      print(f"Skipped {name}: {error}")
+
+          output = {
+              "source": "Cricsheet",
+              "source_url": "https://cricsheet.org/downloads/",
+              "matches_read": match_count,
+              "matches_with_innings": usable_count,
+              "teams": {}
+          }
+
+          for team, stats in team_stats.items():
+              stats["recent_results"].sort(
+                  key=lambda item: item["date"]
+              )
+              stats["recent_results"] = stats["recent_results"][-10:]
+              output["teams"][team] = stats
+
+          os.makedirs("data", exist_ok=True)
+
+          with open("data/cricsheet-team-stats.json", "w") as file:
+              json.dump(output, file, indent=2)
+
+          print(f"Matches read: {match_count}")
+          print(f"Matches with innings: {usable_count}")
+          print(f"Teams summarized: {len(team_stats)}")
+          print("Saved data/cricsheet-team-stats.json")
+          PY
+
+      - name: Commit processed statistics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/cricsheet-team-stats.json
+          git diff --cached --quiet || git commit -m "Add Cricsheet historical team statistics"
+          git push
+          
