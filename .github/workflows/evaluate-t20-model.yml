@@ -1,0 +1,201 @@
+name: Evaluate Cricket Guru T20 Baseline
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Evaluate historical T20 predictions
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          import os
+          from collections import defaultdict
+
+          path = "data/cricsheet-t20-matches.json"
+
+          with open(path, encoding="utf-8") as f:
+              dataset = json.load(f)
+
+          matches = dataset.get("matches", [])
+
+          def usable(match):
+              innings = match.get("innings", [])
+              scores = {}
+
+              for row in innings:
+                  team = row.get("team")
+                  if team and team not in scores:
+                      scores[team] = int(row.get("runs", 0))
+
+              teams = match.get("teams", [])
+              winner = match.get("winner")
+
+              return (
+                  len(teams) == 2
+                  and winner in teams
+                  and all(team in scores for team in teams)
+              )
+
+          matches = sorted(
+              [m for m in matches if usable(m)],
+              key=lambda m: m.get("date", "")
+          )
+
+          if len(matches) < 100:
+              raise SystemExit(
+                  f"Not enough usable matches for evaluation: {len(matches)}"
+              )
+
+          split = int(len(matches) * 0.8)
+          if split <= 0 or split >= len(matches):
+              raise SystemExit("Could not create chronological train/test split.")
+
+          ratings = defaultdict(lambda: 1500.0)
+          run_history = defaultdict(list)
+
+          K = 24
+          correct = 0
+          tested = 0
+          score_errors = []
+          results = []
+
+          def score_for(match, team):
+              for row in match.get("innings", []):
+                  if row.get("team") == team:
+                      return int(row.get("runs", 0))
+              return None
+
+          for index, match in enumerate(matches):
+              teams = match["teams"]
+              a, b = teams[0], teams[1]
+              winner = match["winner"]
+              score_a = score_for(match, a)
+              score_b = score_for(match, b)
+
+              rating_a = ratings[a]
+              rating_b = ratings[b]
+
+              expected_a = 1 / (
+                  1 + 10 ** ((rating_b - rating_a) / 400)
+              )
+              predicted_winner = a if expected_a >= 0.5 else b
+
+              history_a = run_history[a]
+              history_b = run_history[b]
+
+              predicted_score_a = (
+                  sum(history_a[-10:]) / len(history_a[-10:])
+                  if history_a else None
+              )
+              predicted_score_b = (
+                  sum(history_b[-10:]) / len(history_b[-10:])
+                  if history_b else None
+              )
+
+              if index >= split:
+                  tested += 1
+                  if predicted_winner == winner:
+                      correct += 1
+
+                  if predicted_score_a is not None:
+                      score_errors.append(
+                          abs(predicted_score_a - score_a)
+                      )
+
+                  if predicted_score_b is not None:
+                      score_errors.append(
+                          abs(predicted_score_b - score_b)
+                      )
+
+                  results.append({
+                      "date": match.get("date", ""),
+                      "team_a": a,
+                      "team_b": b,
+                      "actual_winner": winner,
+                      "predicted_winner": predicted_winner,
+                      "winner_correct": predicted_winner == winner,
+                      "predicted_score_a": (
+                          round(predicted_score_a, 1)
+                          if predicted_score_a is not None else None
+                      ),
+                      "actual_score_a": score_a,
+                      "predicted_score_b": (
+                          round(predicted_score_b, 1)
+                          if predicted_score_b is not None else None
+                      ),
+                      "actual_score_b": score_b
+                  })
+
+              actual_a = 1.0 if winner == a else 0.0
+              new_a = rating_a + K * (actual_a - expected_a)
+              new_b = rating_b - K * (actual_a - expected_a)
+
+              ratings[a] = new_a
+              ratings[b] = new_b
+
+              run_history[a].append(score_a)
+              run_history[b].append(score_b)
+
+          accuracy = (correct / tested * 100) if tested else 0
+          mae = (
+              sum(score_errors) / len(score_errors)
+              if score_errors else None
+          )
+
+          report = {
+              "model": "Elo winner baseline + recent average score",
+              "source": "Cricsheet",
+              "matches_available": len(matches),
+              "training_matches": split,
+              "test_matches": tested,
+              "winner_correct": correct,
+              "winner_accuracy_percent": round(accuracy, 2),
+              "score_predictions_count": len(score_errors),
+              "score_mean_absolute_error_runs": (
+                  round(mae, 2) if mae is not None else None
+              ),
+              "notes": [
+                  "Matches are sorted by date.",
+                  "The earliest 80 percent are used to initialize training.",
+                  "Test predictions use only results available before each match.",
+                  "Ratings update after each test match result.",
+                  "Score estimates use each team's previous ten recorded innings.",
+                  "This is a baseline, not a guarantee of future accuracy."
+              ],
+              "test_results": results
+          }
+
+          os.makedirs("data", exist_ok=True)
+
+          with open(
+              "data/t20-model-evaluation.json",
+              "w",
+              encoding="utf-8"
+          ) as f:
+              json.dump(report, f, ensure_ascii=False, indent=2)
+
+          print("Training matches:", split)
+          print("Test matches:", tested)
+          print("Winner accuracy:", round(accuracy, 2), "%")
+          print("Score MAE:", mae)
+          print("Saved data/t20-model-evaluation.json")
+          PY
+
+      - name: Commit evaluation report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/t20-model-evaluation.json
+          git diff --cached --quiet || git commit -m "Add T20 baseline backtest report"
+          git push
