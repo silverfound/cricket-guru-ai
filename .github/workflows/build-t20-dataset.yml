@@ -1,3 +1,4 @@
+
 name: Build Cricsheet T20 Match Dataset
 
 on:
@@ -45,7 +46,11 @@ jobs:
                           raw = json.load(file)
 
                       info = raw.get("info", {})
-                      if str(info.get("match_type", "")).upper() not in match_types:
+                      match_type = str(
+                          info.get("match_type", "")
+                      ).upper()
+
+                      if match_type not in match_types:
                           continue
 
                       teams = info.get("teams", [])
@@ -70,10 +75,15 @@ jobs:
                                   runs += int(
                                       delivery.get("runs", {}).get("total", 0)
                                   )
-                                  wickets += len(delivery.get("wickets", []))
+                                  wickets += len(
+                                      delivery.get("wickets", [])
+                                  )
 
                                   extras = delivery.get("extras", {})
-                                  if "wides" not in extras and "noballs" not in extras:
+                                  if (
+                                      "wides" not in extras
+                                      and "noballs" not in extras
+                                  ):
                                       legal_balls += 1
 
                           innings_rows.append({
@@ -87,10 +97,19 @@ jobs:
                           continue
 
                       dates = info.get("dates", [])
+                      event = info.get("event", {}) or {}
 
                       matches.append({
                           "date": str(dates[0]) if dates else "",
-                          "match_type": info.get("match_type", ""),
+                          "match_type": match_type,
+                          "gender": info.get("gender", "unknown"),
+                          "team_type": info.get("team_type", "unknown"),
+                          "season": str(info.get("season", "")),
+                          "competition": (
+                              str(event.get("name", "")).strip()
+                              or "Unspecified competition"
+                          ),
+                          "event_match_number": event.get("match_number"),
                           "teams": teams,
                           "winner": winner,
                           "venue": info.get("venue", ""),
@@ -125,6 +144,7 @@ jobs:
               )
 
           print("T20 matches saved:", len(matches))
+          print("Competition metadata saved.")
           PY
 
       - name: Commit dataset
@@ -132,5 +152,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/cricsheet-t20-matches.json
-          git diff --cached --quiet || git commit -m "Build match-level Cricsheet T20 dataset"
+          git diff --cached --quiet || git commit -m "Build Cricsheet T20 dataset with competition metadata"
           git push
+          
