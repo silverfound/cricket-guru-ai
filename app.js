@@ -1,11 +1,13 @@
 
 const $ = id => document.getElementById(id);
-const API = "https://cricket-guru-api.silverfound23.workers.dev";
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;",
-    '"': "&quot;", "'": "&#39;"
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
   }[c]));
 }
 
@@ -31,12 +33,13 @@ async function loadCricketMatches() {
   if (!status || !list) return;
 
   status.textContent = "Loading matches...";
- console.log("Cricket Guru: fixture loading started");
   list.innerHTML = "";
 
   try {
-    const response = await fetch(`${API}/matches?limit=50`);
-    if (!response.ok) throw new Error(`Server returned ${response.status}`);
+    const response = await fetch("./matches.json?v=" + Date.now());
+    if (!response.ok) {
+      throw new Error(`Could not load matches.json (${response.status})`);
+    }
 
     const json = await response.json();
     const matches = Array.isArray(json) ? json : json.data ?? json.matches ?? [];
@@ -44,14 +47,17 @@ async function loadCricketMatches() {
     const upcoming = matches
       .filter(m => {
         const time = Date.parse(kickoff(m));
+        const matchStatus = String(m.status ?? "").toLowerCase();
+
         return Number.isFinite(time) &&
           time >= Date.now() &&
-          String(m.status ?? "").toLowerCase() === "scheduled";
+          ["scheduled", "upcoming", "not_started"].includes(matchStatus);
       })
       .sort((a, b) => Date.parse(kickoff(a)) - Date.parse(kickoff(b)));
 
     if (!upcoming.length) {
-      status.textContent = `API returned ${matches.length} matches, but none were future scheduled fixtures in this response.`;
+      status.textContent =
+        `Data file mein ${matches.length} matches hain, lekin future scheduled matches nahi mile.`;
       return;
     }
 
@@ -78,7 +84,7 @@ async function loadCricketMatches() {
       });
     });
   } catch (error) {
-    status.textContent = `Could not load matches: ${error.message}. Check the API connection or CORS settings.`;
+    status.textContent = `Could not load matches: ${error.message}`;
   }
 }
 
@@ -89,6 +95,7 @@ if ($("form")) {
     event.preventDefault();
     const result = $("result");
     if (!result) return;
+
     result.hidden = false;
     result.innerHTML = `
       <h3>${esc($("a")?.value)} vs ${esc($("b")?.value)}</h3>
