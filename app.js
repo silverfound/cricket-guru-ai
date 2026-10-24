@@ -80,7 +80,8 @@ function getFormatData() {
 /* Country flags used as team badges.
    Franchise teams without a country match use initials. */
 function teamBadge(teamName) {
-  const key = String(teamName ?? "").trim().toLowerCase();
+  const rawName = String(teamName ?? "").trim();
+  const key = rawName.toLowerCase();
 
   const countries = {
     "pakistan": "pk",
@@ -110,28 +111,35 @@ function teamBadge(teamName) {
     "papua new guinea": "pg"
   };
 
-  const code = countries[key];
-
-  if (code) {
-    return `
-      <div class="cg-team-badge" aria-label="${esc(teamName)} badge">
-        <img src="https://flagcdn.com/w160/${code}.png"
-             alt="${esc(teamName)} flag"
-             loading="lazy"
-             onerror="this.parentElement.innerHTML='🏏'">
-      </div>
-    `;
-  }
-
-  const initials = String(teamName ?? "?")
+  const initials = rawName
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
     .map(word => word[0])
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "🏏";
 
-  return `<div class="cg-team-badge cg-initials">${esc(initials || "🏏")}</div>`;
+  const code = countries[key];
+
+  if (code) {
+    return `
+      <div class="cg-team-badge" aria-label="${esc(rawName)} badge">
+        <img
+          src="https://flagcdn.com/w160/${code}.png"
+          alt="${esc(rawName)} flag"
+          loading="lazy"
+          onerror="this.onerror=null;this.outerHTML='<span class=&quot;cg-initials&quot;>${initials}</span>'"
+        >
+      </div>
+    `;
+  }
+
+  return `
+    <div class="cg-team-badge cg-initials"
+         aria-label="${esc(rawName)} badge">
+      ${esc(initials)}
+    </div>
+  `;
 }
 
 function findTeamStats(teamName) {
