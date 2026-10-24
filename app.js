@@ -13,8 +13,89 @@ function teamCard(n){let s=statsFor(n);if(!s)return `<section class="cg-stats"><
 function compare(a,b){let x=statsFor(a),y=statsFor(b);if(!x||!y)return `<section class="cg-prediction"><h3>${esc(a)} vs ${esc(b)}</h3><p>Comparison unavailable: one or both teams have no record in this selected dataset.</p></section>`;let mx=+x.matches||0,my=+y.matches||0;if(!mx||!my)return '<section class="cg-prediction">Insufficient records for comparison.</section>';let rx=(+x.wins+1)/(mx+2),ry=(+y.wins+1)/(my+2),pa=Math.round(rx/(rx+ry)*100),pb=100-pa,msg=pa===pb?'Relative historical estimates are equal.':pa>pb?`${esc(a)} ka historical win-rate estimate zyada hai.`:`${esc(b)} ka historical win-rate estimate zyada hai.`;return `<section class="cg-prediction"><p class="eyebrow">PRELIMINARY COMPARISON</p><h3>${esc(a)} vs ${esc(b)}</h3><div class="cg-team-row">${badge(a)}<div class="cg-team-info"><b>${esc(a)}</b><div class="cg-percent">${pa}%</div><div class="cg-track"><div class="cg-bar cg-bar-a" style="width:${pa}%"></div></div></div></div><div class="cg-team-row">${badge(b)}<div class="cg-team-info"><b>${esc(b)}</b><div class="cg-percent">${pb}%</div><div class="cg-track"><div class="cg-bar cg-bar-b" style="width:${pb}%"></div></div></div></div><p>${msg}</p><p class="cg-disclaimer">Historical win-rate comparison only, not a calibrated winning probability. Toss, playing XI, pitch, venue and current conditions are not included. Exact-score prediction is not available.</p></section>`;}
 function addStyles(){if($('cg-style'))return;let s=document.createElement('style');s.id='cg-style';s.textContent='.cg-prediction,.cg-stats{margin:18px 0;padding:18px;border:1px solid var(--line);border-radius:16px;background:#0b1a2b}.cg-team-row{display:flex;align-items:center;gap:14px;margin:18px 0}.cg-team-badge{flex:0 0 60px;width:60px;height:60px;display:grid;place-items:center;overflow:hidden;border-radius:14px;background:#eaf0f7;color:#102033;font-weight:800}.cg-team-badge img{width:100%;height:100%;object-fit:cover}.cg-initials{background:#18334a;color:white;font-size:21px}.cg-team-info{flex:1;min-width:0}.cg-percent{font-size:28px;font-weight:800}.cg-track{height:9px;border-radius:20px;background:#303640;overflow:hidden}.cg-bar{height:100%}.cg-bar-a{background:#43d9a0}.cg-bar-b{background:#70aaff}.cg-disclaimer{font-size:13px;color:var(--muted);line-height:1.6}';document.head.appendChild(s);}
 async function loadHistory(){try{let r=await fetch('./data/cricsheet-team-stats.json?v='+Date.now());if(!r.ok)throw Error(r.status);let j=await r.json();if(!j.formats)throw Error('formats missing');historicalData=j;return true;}catch(e){console.error(e);return false;}}
-async function loadMatches(){let st=$('matches-status'),list=$('matches-list');if(!st||!list)return;try{let r=await fetch('./matches.json?v='+Date.now());if(!r.ok)throw Error(r.status);let j=await r.json(),all=Array.isArray(j)?j:j.data||j.matches||[],now=Date.now(),up=all.filter(m=>{let d=Date.parse(m.kickoff_utc||m.kickoff||m.date||m.start_time||'');return Number.isFinite(d)&&d>=now;}).sort((a,b)=>Date.parse(a.kickoff_utc||a.kickoff||a.date||a.start_time)-Date.parse(b.kickoff_utc||b.kickoff||b.date||b.start_time));if(!up.length){st.textContent='No future scheduled matches found in current fixture data.';return;}st.textContent=up.length+' upcoming matches loaded.';list.innerHTML=up.map((m,i)=>`<article class="match-card"><h3>${esc(m.home||m.teams?.[0]||'Team A')} vs ${esc(m.away||m.teams?.[1]||'Team B')}</h3><p class="meta">${esc(m.league||m.competition||'Cricket')} · ${esc(m.kickoff_utc||m.kickoff||m.date||'Date unavailable')}</p><button class="button" data-i="${i}">Analyze this match →</button></article>`).join('');list.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{let m=up[+btn.dataset.i];$('a').value=teamName(m.home||m.teams?.[0]);$('b').value=teamName(m.away||m.teams?.[1]);$('lab').scrollIntoView({behavior:'smooth'});});}catch(e){st.textContent='Fixtures could not be loaded: '+e.message;}}
+
+async function loadMatches() {
+  const st = $('matches-status');
+  const list = $('matches-list');
+  if (!st || !list) return;
+
+  try {
+    const r = await fetch('./matches.json?v=' + Date.now());
+    if (!r.ok) throw Error(r.status);
+
+    const j = await r.json();
+    const all = Array.isArray(j) ? j : j.data || j.matches || [];
+
+    const getName = value =>
+      typeof value === 'string'
+        ? value
+        : value?.name || value?.short_name || 'Unknown team';
+
+    const getDate = m =>
+      m.kickoff_utc || m.kickoff || m.date || m.start_time || '';
+
+    const now = Date.now();
+
+    const up = all
+      .filter(m => {
+        const d = Date.parse(getDate(m));
+        const status = String(m.status || 'scheduled').toLowerCase();
+
+        return Number.isFinite(d) &&
+          d >= now &&
+          ['scheduled', 'upcoming', 'not_started'].includes(status);
+      })
+      .sort((a, b) =>
+        Date.parse(getDate(a)) - Date.parse(getDate(b))
+      );
+
+    if (!up.length) {
+      st.textContent = 'No future scheduled matches found.';
+      list.innerHTML = '';
+      return;
+    }
+
+    st.textContent = up.length + ' upcoming matches loaded.';
+
+    list.innerHTML = up.map((m, i) => {
+      const home = getName(m.home || m.teams?.[0] || 'Team A');
+      const away = getName(m.away || m.teams?.[1] || 'Team B');
+      const league = m.league || m.competition || 'Cricket';
+      const timestamp = Date.parse(getDate(m));
+      const readableDate = Number.isFinite(timestamp)
+        ? new Date(timestamp).toLocaleString()
+        : 'Date unavailable';
+
+      return `<article class="match-card">
+        <h3>${esc(home)} vs ${esc(away)}</h3>
+        <p class="meta">${esc(league)} · ${esc(readableDate)}</p>
+        <button class="button" data-i="${i}">Analyze this match →</button>
+      </article>`;
+    }).join('');
+
+    list.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => {
+        const m = up[Number(btn.dataset.i)];
+        $('a').value = getName(m.home || m.teams?.[0]);
+        $('b').value = getName(m.away || m.teams?.[1]);
+
+        const league = String(m.league || m.competition || '').toLowerCase();
+        if (league.includes('odi')) {
+          $('format').value = 'ODI International';
+        } else if (league.includes('t20i')) {
+          $('format').value = 'T20 International';
+        }
+
+        $('lab').scrollIntoView({ behavior: 'smooth' });
+      };
+    });
+  } catch (e) {
+    st.textContent = 'Fixtures could not be loaded: ' + e.message;
+  }
+}
+
 $('refresh-matches')?.addEventListener('click',loadMatches);
 $('form')?.addEventListener('submit',async e=>{e.preventDefault();let r=$('result');r.hidden=false;r.innerHTML='<p>Loading competition-specific records…</p>';if(!historicalData&&!(await loadHistory())){r.innerHTML='<p>Historical data failed to load. Check that data/cricsheet-team-stats.json exists.</p>';return;}let a=$('a').value.trim(),b=$('b').value.trim();if(!a||!b||norm(a)===norm(b)){r.innerHTML='<p>Enter two different team names.</p>';return;}if(fmt()==='LEAGUE'&&$('league').value==='International'){$('league').focus();r.innerHTML='<p>Major T20 format ke liye specific league select karein.</p>';return;}addStyles();r.innerHTML=`<h3>${esc(a)} vs ${esc(b)}</h3><p><b>Format:</b> ${esc(fmt()==='LEAGUE'?'Major T20 League':fmt())} · <b>Competition:</b> ${esc($('league').value)} · <b>Venue:</b> ${esc($('ground').value||'Not provided')}</p>${compare(a,b)}${teamCard(a)}${teamCard(b)}`;});
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));Promise.all([loadHistory(),loadMatches()]);
+                                                                                                        
                                                                                                         
