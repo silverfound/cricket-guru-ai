@@ -1618,7 +1618,12 @@
     "kickoff_utc": "2026-10-24T21:30:00.000Z",
     "status": "scheduled",
     "score": null,
-    "linescore": null,
+    "linescore": {
+      "away": [
+        56
+      ],
+      "home": []
+    },
     "attendance": null,
     "broadcast": null,
     "round": null,
@@ -1941,9 +1946,19 @@
       "logo_url": "https://api.bigballsdata.com/v1/assets/URGNHRLloFlrgfLCCF__ElYQem7pnGdoolwEZmPzl9cTKUV4OXwaqLvgy3S-Y_pcdwCjV7RG3rfrYEj2xVQ9RAyLVK_eFcmOBHnLpI6HYnl9tKpG5qU"
     },
     "kickoff_utc": "2026-10-23T16:00:00.000Z",
-    "status": "scheduled",
-    "score": null,
-    "linescore": null,
+    "status": "finished",
+    "score": {
+      "home": 56,
+      "away": 51
+    },
+    "linescore": {
+      "away": [
+        51
+      ],
+      "home": [
+        56
+      ]
+    },
     "attendance": null,
     "broadcast": "",
     "round": null,
@@ -6150,5 +6165,435 @@
     "broadcast": "",
     "round": null,
     "has_odds": true
+  },
+  {
+    "id": "eef0cd77-e7cd-4398-ab15-b4a95359279e",
+    "sport": "cricket",
+    "league": "Test Cricket",
+    "home": {
+      "id": "588de226-657d-4460-9a15-5a58bc868973",
+      "name": "New Zealand A",
+      "short_name": "NZA",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/12D7yyHSO1q3myUaZx7IX1uBWZRqsyYz2hN5eq5wnVzjM9z7kEMFZwOyfkfX1FhToVkTnT9x6dBgWUlLS2G-mtuutnzXVFaq3sUe0dmN9ZxLcOoXrELwfA"
+    },
+    "away": {
+      "id": "4bd8e0d1-6fb1-414b-8302-c39dd34ffc68",
+      "name": "India A",
+      "short_name": "INA",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/d-9OUDaOq103Flmkq-qYGLFwk0fPDzZs7Oqk_tAKoBjxRScf0IJ-l_Hh-bL1nQgk6hlpmMtPjkMZ-Zf30PkYI0lMMTa6QVWqmbxyr8HZitRta_paVl2SHA"
+    },
+    "kickoff_utc": "2026-10-31T21:30:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "c64f0a5a-db69-4098-bab2-2dd7de0add7a",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "908aad31-41a0-55d6-bbfd-82f592a59c53",
+      "name": "Perth Scorchers Women",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/r4tVzt0N3cBulL9fKEiSwbNTci3VBYijP5W1CbnI63nwdke8Lh0PXMKsYlzUY5m05ITXkNIMFyg8NOPcqAA8xF36v0iV3_CIsZcNhTGmHiYPgDK5xOHegw"
+    },
+    "away": {
+      "id": "a7b23baa-73e8-561c-9864-ae5d48d041a5",
+      "name": "Melbourne Renegades Women",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/rXhXM7O2Z-TR2FStyTfU3LpkerYAOz7QylztcHfHY9ZgBgU94VTDXx0nYQVmLNdtqhHvzIqg1TLUAYy75oKJX0tjXl4Fcxa8NdAzrUbwxs5iiUUFbrT1Eg"
+    },
+    "kickoff_utc": "2026-10-31T08:10:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "6ebe7744-0ef4-4b43-9330-dcb44f719fd9",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "074deff6-0f65-49bf-9b68-5e5e075a0c92",
+      "name": "D1",
+      "short_name": "D1",
+      "logo_url": null
+    },
+    "away": {
+      "id": "e21188de-a6fb-4413-a1b2-312d2b95f812",
+      "name": "B1",
+      "short_name": "B1",
+      "logo_url": null
+    },
+    "kickoff_utc": "2026-10-31T08:05:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "cccf8031-ff4d-41ae-b0a7-8fc55495a82f",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "57340889-235e-427d-80a8-56fdba1587a8",
+      "name": "C1",
+      "short_name": "C1",
+      "logo_url": null
+    },
+    "away": {
+      "id": "8158c03c-c7b9-4568-8a30-0f77f39c098a",
+      "name": "A1",
+      "short_name": "A1",
+      "logo_url": null
+    },
+    "kickoff_utc": "2026-10-31T07:10:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "dbf86eb1-804e-4d7f-b46f-7c92c3ff1f77",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "b0eac96d-7e6b-43f5-9f5a-00dbe5887e5b",
+      "name": "C2",
+      "short_name": "C3",
+      "logo_url": null
+    },
+    "away": {
+      "id": "e1dce12a-b5bb-411f-b70b-ce8580901e25",
+      "name": "A2",
+      "short_name": "A2",
+      "logo_url": null
+    },
+    "kickoff_utc": "2026-10-31T06:15:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "fd075663-f7b6-471c-b1f6-ce09ba4d6f67",
+    "sport": "cricket",
+    "league": "ODI Cricket",
+    "home": {
+      "id": "d44cfd81-2dc4-43a4-a7be-0c31266ca6ad",
+      "name": "Papua New Guinea",
+      "short_name": "PNG",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/aMT6mOY5NL3FvEKVTIEbyAq5vDyqH1RdVqzAemIWNPuljm2O1OM2ZmKXSDJOPLfUTnq6GDr3APNWwG2ID0ATSdS35TRIo3du9YdZ7dpLVbbaezmuSVw"
+    },
+    "away": {
+      "id": "605b2551-3858-5e0c-be02-c3ce1f5a11bd",
+      "name": "Kuwait",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/TX7iIkfk1lf191uUc1WyGzJGQGac0n6d4kXNiGBAe-TTyycAzE0IS-FIYY8-KwbG-Vdva299pj8-eOobJCfFIARXfDDSIEN_NFifbhMoAl6XuWAfjFG2"
+    },
+    "kickoff_utc": "2026-10-31T05:30:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "caee5a8b-0ecf-4d2d-9ab9-cb4d49f533ee",
+    "sport": "cricket",
+    "league": "ODI Cricket",
+    "home": {
+      "id": "ada3261c-62a6-4a61-a2a9-27f9ce528fff",
+      "name": "United Arab Emirates",
+      "short_name": "UAE",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/0KTqATEw4qWb9JYdUS4FFEiRkAR7FX_10_0Pkkx3TGgsj8z-It1f3X4HsUhyd5e04c4DwCIBedzMzFpv87nFmbR8_m1nv8jlwGKaBwkbj0pfQ6bP2Jc"
+    },
+    "away": {
+      "id": "70f170fa-265f-4a9c-a093-da5458a024bb",
+      "name": "Netherlands",
+      "short_name": "NED",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/gDKpnqfNNo8lszKNI0WbuKcsVeTFqkJjdYA8RtOx_dkRXiZ2JzAbzfpUHmmLk6zDQVGmJEProPVKMe6g--LH7_rUZHt60izOaxGdK2RlHKbl6ZF9A5Q"
+    },
+    "kickoff_utc": "2026-10-31T05:30:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "0018357a-1a9d-4e84-87c7-48407bd93fb7",
+    "sport": "cricket",
+    "league": "ODI Cricket",
+    "home": {
+      "id": "31d8c020-ad6e-5e7d-8f7e-3933b0d6f461",
+      "name": "Qatar",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/EwzYQUxvZalMI2WHrLQZM31ArWSYREBKLjkkA747I4BwwV2E11Rr-ctuEyjTFi2DSSDCwPVHMOGWGGH5EcydfU9ZYUYJM5qr3pZju3zmPLNTgdjdSSKa"
+    },
+    "away": {
+      "id": "c4bdbfa8-75b4-47e0-beef-288818a526e5",
+      "name": "Jersey",
+      "short_name": "JER",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/BoNasTZCJNGJBbUn2Tlrjg5NI_tAlP22AMP5eA5ca5aBszEBbFgw-Qfu8gmGoF0huMkG-dN7tVTG-LgITVQ7oRTLQajrKev65gnrBOXWxas7Mf3wXzdI"
+    },
+    "kickoff_utc": "2026-10-31T05:30:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "7fcc657b-c415-44b6-8168-cbe93425d3fe",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "79549b39-e71f-4dac-9af0-b0f3d8a15a44",
+      "name": "D2",
+      "short_name": "D2",
+      "logo_url": null
+    },
+    "away": {
+      "id": "6e8a14b2-04ed-476c-b9f0-f98e7305f731",
+      "name": "B2",
+      "short_name": "B2",
+      "logo_url": null
+    },
+    "kickoff_utc": "2026-10-31T05:20:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "092c6e26-2d08-4dc5-8932-1f943d023e98",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "73b78f11-2fdb-5406-b6a3-045d86def419",
+      "name": "Melbourne Stars Women",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/H2vOMOsfMzOUXftU6NDuF94MiSAMyrJhL2d1Hpusd6iq9naHK9I7UkajqtQ-ZBr-bElP6Vx3EMeN9wkdCBosDj6IHzeK4gZ64GeZjzS6LDh8whbR6kHfmg"
+    },
+    "away": {
+      "id": "5833a61f-4ade-56a1-94b9-42f5f0fb95a6",
+      "name": "Adelaide Strikers Women",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/HQCh57k67c0qAjYklY0ukc95Z9I6gAbJ9gjd3CfTbKpwcALwIw2ewzUdOQFURT2AHkCsoIbiVRTdUa71mXra4O1WVD2QhtUVo5eZf1LrYmRE5lALD-1TNg"
+    },
+    "kickoff_utc": "2026-10-31T04:40:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "f5135a80-2d60-40ca-b420-83fed2e1755a",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "ef4873e5-b5e1-4cc6-a83c-a3de40162e3c",
+      "name": "C3",
+      "short_name": "C3",
+      "logo_url": null
+    },
+    "away": {
+      "id": "8e373b3b-fb58-4608-9138-1de5990b9d42",
+      "name": "A3",
+      "short_name": "A3",
+      "logo_url": null
+    },
+    "kickoff_utc": "2026-10-31T04:25:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "ed400d31-c6d0-446a-b638-925899b147c4",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "ab81cf5b-952f-419b-93c1-78f0ca725c02",
+      "name": "D3",
+      "short_name": "D3",
+      "logo_url": null
+    },
+    "away": {
+      "id": "3d9f4c3f-5b57-475d-8df5-68a4cae81648",
+      "name": "B3",
+      "short_name": "B3",
+      "logo_url": null
+    },
+    "kickoff_utc": "2026-10-31T03:30:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "7bbe6fb1-546c-4a34-bad9-09485d669766",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "ada3261c-62a6-4a61-a2a9-27f9ce528fff",
+      "name": "United Arab Emirates",
+      "short_name": "UAE",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/0KTqATEw4qWb9JYdUS4FFEiRkAR7FX_10_0Pkkx3TGgsj8z-It1f3X4HsUhyd5e04c4DwCIBedzMzFpv87nFmbR8_m1nv8jlwGKaBwkbj0pfQ6bP2Jc"
+    },
+    "away": {
+      "id": "3505e843-a9c2-48f4-882a-6c4549868bcb",
+      "name": "India",
+      "short_name": "IND",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/eUcCM0yjARK6FCUIIgA1_t_e7fekh1fCOqVu53K1mJ0nVMQBN8EKgCNgfiuvIQYxUiUwjtCqD-Pu1NdBVTgTsLB6gUY_GsmK5qiBhumMMWxS7lapXKs"
+    },
+    "kickoff_utc": "2026-10-31T02:35:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "1e0082ac-3ae7-48cd-80c8-bde457035ec8",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "36998bde-f272-48ee-a5e5-6a242ea4ed61",
+      "name": "Sri Lanka",
+      "short_name": "SL",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/gDZoFudeoqsxm-P6Wymng56_wAD43GPHQj6UxKxdYBnmrghYVys71UzlcRkNh6tQXfyCvwHgIoR3K81gRHMZymQt6Z0vMEDSetaNueQ0dEEKDsCPOFuDQg"
+    },
+    "away": {
+      "id": "aee29565-166a-44df-bc26-7b593597d2e5",
+      "name": "Scotland",
+      "short_name": "SCO",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/V-EPSGft8Tci9UuwpM38MinRaW1FtkatfuWj211-F0XB7Sq6v9nv1Izojzz2mpdw0tVY3-3OUYpmsEydWnhTrzXODl-CmM718cZhmUqacT5J4J5Xn6A"
+    },
+    "kickoff_utc": "2026-10-31T01:40:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "c92e7ce1-a014-40a8-8b31-a5753a306760",
+    "sport": "cricket",
+    "league": "T20I Cricket",
+    "home": {
+      "id": "3da53193-1436-450a-bdd8-c818719cfc2e",
+      "name": "Oman",
+      "short_name": "OMAN",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/IqvM0zMt2gBw9Hn-thriaM5ELlASm1hvovEWO-x4FrcaoV02I8JRNzo5ow1BUzeJ8ersgsn-CRZc4uMkiXjlKTru6N4pt67Yy2KJgsHk3eJKSSrXzmI"
+    },
+    "away": {
+      "id": "a0b398be-c938-4563-9cfc-375150a41073",
+      "name": "Afghanistan",
+      "short_name": "AFG",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/b-Scr2PENNa8vyEipgJ5Q1tk6nUDhlLCRQFBCIHt-1JUa1NVqBWyc_yIHrZ-5IFGMUXDrHlOHSPptcfZLXseRWDwRzkepF0UHVAB63Mebp694fqmhw"
+    },
+    "kickoff_utc": "2026-10-31T00:45:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "c3a03b30-bdb7-4d74-b45b-e1a177ba5097",
+    "sport": "cricket",
+    "league": "Sheffield Shield",
+    "home": {
+      "id": "620f5d99-e652-55f7-a7d9-2d4c2b3f4cc2",
+      "name": "Victoria",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/adQ44NkLPodNOXq9Pf6c2X4X4Cw054EzUfCTkVM8EqpTJ81nKvItfUWesmnSpISyaYk13MBSKiibKGFjhZTeGOO80FIlorOtaArg3ZgiwqXPwjxSfLw"
+    },
+    "away": {
+      "id": "eabbafea-6d4b-53a2-a3fd-1d336e1037d6",
+      "name": "Queensland",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/h8K5d435A81WTv9AoliCAdwWlg-OvQ0mGfgytCD49BzwMgw2boxpTmTywkrl_G-Qt6kb2EtU6ygIt9ZZGUTQOz3oWT0NyulNCYQ4yucOGBBCEAKiWNU"
+    },
+    "kickoff_utc": "2026-10-31T00:00:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": null,
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
+  },
+  {
+    "id": "5303f48b-36e3-433a-8f6a-c753a964d53f",
+    "sport": "cricket",
+    "league": "ODI Cricket",
+    "home": {
+      "id": "620f5d99-e652-55f7-a7d9-2d4c2b3f4cc2",
+      "name": "Victoria",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/adQ44NkLPodNOXq9Pf6c2X4X4Cw054EzUfCTkVM8EqpTJ81nKvItfUWesmnSpISyaYk13MBSKiibKGFjhZTeGOO80FIlorOtaArg3ZgiwqXPwjxSfLw"
+    },
+    "away": {
+      "id": "63e3f899-2ede-54bf-9c49-58fc64dad54d",
+      "name": "Tasmania",
+      "short_name": null,
+      "logo_url": "https://api.bigballsdata.com/v1/assets/Ax0v4PUOfznanljOcMLPeuDVeDEak1_CD6m_o8hqohEQO_axfyoaJHppbp0XTmzjoFZLeCUOD3fh3AtOzJWckYBs5sJ5Ll-8eHaZT3nz-mGa8nDgVY8"
+    },
+    "kickoff_utc": "2026-10-24T23:30:00.000Z",
+    "status": "scheduled",
+    "score": null,
+    "linescore": {
+      "away": [],
+      "home": [
+        101
+      ]
+    },
+    "attendance": null,
+    "broadcast": null,
+    "round": null,
+    "has_odds": false
   }
 ]
