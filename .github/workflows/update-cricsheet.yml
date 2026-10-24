@@ -1,218 +1,80 @@
-
-name: Update Cricsheet Historical Data
-
+name: Build competition-specific Cricsheet statistics
 on:
   workflow_dispatch:
   schedule:
     - cron: "41 3 * * 1"
-
 permissions:
   contents: write
-
 jobs:
   build-history:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Download and process Cricsheet archive
         run: |
           python - <<'PY'
-          import json
-          import urllib.request
-          import zipfile
-          import io
-          import os
+          import io,json,os,re,urllib.request,zipfile
           from collections import defaultdict
-
-          url = "https://cricsheet.org/downloads/all_json.zip"
-          request = urllib.request.Request(
-              url,
-              headers={"User-Agent": "CricketGuruAI/1.0"}
-          )
-
-          print("Downloading Cricsheet archive...")
-          with urllib.request.urlopen(request, timeout=240) as response:
-              archive_bytes = response.read()
-
-          print(f"Downloaded {len(archive_bytes) / 1024 / 1024:.1f} MB")
-
-          def classify(match_type):
-              value = str(match_type or "").strip().upper()
-
-              if value in ("T20", "IT20", "WT20"):
-                  return "T20"
-              if value in ("ODI", "ODM", "WODI", "WODM"):
-                  return "ODI"
-              if value in ("TEST", "MDM", "WTEST"):
-                  return "Test"
-
-              return "Other"
-
-          def new_stats():
-              return {
-                  "matches": 0,
-                  "wins": 0,
-                  "losses": 0,
-                  "draws": 0,
-                  "no_results": 0,
-                  "runs_scored": 0,
-                  "innings_batted": 0,
-                  "wickets_lost": 0,
-                  "runs_conceded": 0,
-                  "innings_bowled": 0,
-                  "recent_results": []
-              }
-
-          stats_by_format = defaultdict(
-              lambda: defaultdict(new_stats)
-          )
-
-          matches_read = 0
-          matches_with_innings = 0
-
-          with zipfile.ZipFile(io.BytesIO(archive_bytes)) as archive:
-              files = [
-                  filename for filename in archive.namelist()
-                  if filename.lower().endswith(".json")
-                  and "/" not in filename.strip("/")
-              ]
-
-              for filename in files:
-                  try:
-                      with archive.open(filename) as file:
-                          match = json.load(file)
-
-                      info = match.get("info", {})
-                      teams = info.get("teams", [])
-                      innings_list = match.get("innings", [])
-                      match_format = classify(info.get("match_type"))
-
-                      if len(teams) != 2:
-                          continue
-
-                      matches_read += 1
-
-                      totals = defaultdict(lambda: {
-                          "runs": 0,
-                          "wickets": 0
-                      })
-
-                      for innings in innings_list:
-                          batting_team = innings.get("team")
-                          if batting_team not in teams:
-                              continue
-
-                          for over in innings.get("overs", []):
-                              for delivery in over.get("deliveries", []):
-                                  runs = delivery.get("runs", {})
-
-                                  totals[batting_team]["runs"] += int(
-                                      runs.get("total", 0)
-                                  )
-
-                                  totals[batting_team]["wickets"] += len(
-                                      delivery.get("wickets", [])
-                                  )
-
-                      if not totals:
-                          continue
-
-                      matches_with_innings += 1
-                      winner = info.get("outcome", {}).get("winner")
-                      outcome = info.get("outcome", {})
-                      outcome_type = str(
-                          outcome.get("result", "")
-                      ).lower()
-                      date = (info.get("dates") or [""])[0]
-
-                      for team in teams:
-                          opponent = next(
-                              other for other in teams if other != team
-                          )
-                          stats = stats_by_format[match_format][team]
-
-                          stats["matches"] += 1
-
-                          if team in totals:
-                              stats["runs_scored"] += totals[team]["runs"]
-                              stats["innings_batted"] += 1
-                              stats["wickets_lost"] += totals[team]["wickets"]
-
-                          if opponent in totals:
-                              stats["runs_conceded"] += totals[opponent]["runs"]
-                              stats["innings_bowled"] += 1
-
-                          if winner == team:
-                              result = "win"
-                              stats["wins"] += 1
-                          elif winner in teams:
-                              result = "loss"
-                              stats["losses"] += 1
-                          elif outcome_type == "draw":
-                              result = "draw"
-                              stats["draws"] += 1
-                          else:
-                              result = "no_result"
-                              stats["no_results"] += 1
-
-                          stats["recent_results"].append({
-                              "date": date,
-                              "opponent": opponent,
-                              "result": result,
-                              "runs": totals[team]["runs"],
-                              "opponent_runs": totals[opponent]["runs"]
-                          })
-
-                  except Exception as error:
-                      print(f"Skipped {filename}: {error}")
-
-          output = {
-              "source": "Cricsheet",
-              "source_url": "https://cricsheet.org/downloads/",
-              "matches_read": matches_read,
-              "matches_with_innings": matches_with_innings,
-              "formats": {}
-          }
-
-          for match_format, teams in stats_by_format.items():
-              output["formats"][match_format] = {"teams": {}}
-
-              for team, stats in teams.items():
-                  stats["recent_results"].sort(
-                      key=lambda item: item["date"]
-                  )
-                  stats["recent_results"] = stats["recent_results"][-10:]
-                  output["formats"][match_format]["teams"][team] = stats
-
-          os.makedirs("data", exist_ok=True)
-
-          with open(
-              "data/cricsheet-team-stats.json",
-              "w",
-              encoding="utf-8"
-          ) as file:
-              json.dump(output, file, indent=2, ensure_ascii=False)
-
-          print(f"Matches read: {matches_read}")
-          print(f"Matches with innings: {matches_with_innings}")
-
-          for match_format, data in output["formats"].items():
-              print(
-                  f"{match_format}: "
-                  f"{len(data['teams'])} teams"
-              )
-
-          print("Saved data/cricsheet-team-stats.json")
+          req=urllib.request.Request('https://cricsheet.org/downloads/all_json.zip',headers={'User-Agent':'CricketGuruAI/1.0'})
+          with urllib.request.urlopen(req,timeout=240) as r: data=r.read()
+          def norm(x): return re.sub(r'[^a-z0-9]','',str(x or '').lower())
+          def fmt(x):
+            x=str(x or '').upper()
+            if x in ('ODI','ODM','WODI','WODM'): return 'ODI'
+            if x in ('IT20',): return 'T20I'
+            if x in ('T20','WT20'): return 'T20'
+            if x in ('TEST','MDM','WTEST'): return 'Test'
+            return 'Other'
+          def league(x):
+            n=norm(x); rules=[('wbbl','wbbl'),('womensbigbash','wbbl'),('bbl','bbl'),('bigbash','bbl'),('indianpremierleague','ipl'),('ipl','ipl'),('pakistansuperleague','psl'),('psl','psl'),('womenscpl','wcpl'),('wcpl','wcpl'),('caribbeanpremierleague','cpl'),('cpl','cpl'),('ilt20','ilt20'),('majorleaguecricket','majorleaguecricket'),('mlc','majorleaguecricket'),('sa20','sa20'),('bangladeshpremierleague','bpl'),('bpl','bpl'),('lankapremierleague','lankapremierleague'),('lpl','lankapremierleague'),('wpl','wpl'),('thehundred','thehundred'),('hundred','thehundred')]
+            for token,key in rules:
+              if token in n:return key
+            return 'other'
+          def blank(): return {'matches':0,'wins':0,'losses':0,'draws':0,'no_results':0,'runs_scored':0,'innings_batted':0,'wickets_lost':0,'runs_conceded':0,'innings_bowled':0,'recent_results':[]}
+          formats=defaultdict(lambda:defaultdict(blank)); comps=defaultdict(lambda:defaultdict(blank)); read=0
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+            for fn in z.namelist():
+              if not fn.lower().endswith('.json') or '/' in fn.strip('/'): continue
+              try:
+                with z.open(fn) as f:m=json.load(f)
+                info=m.get('info',{});teams=info.get('teams',[])
+                if len(teams)!=2:continue
+                fkey=fmt(info.get('match_type'));ev=(info.get('event') or {}).get('name','');ckey=league(ev);tot=defaultdict(lambda:{'runs':0,'wickets':0})
+                for inn in m.get('innings',[]):
+                  t=inn.get('team')
+                  if t not in teams:continue
+                  for over in inn.get('overs',[]):
+                    for d in over.get('deliveries',[]):
+                      tot[t]['runs']+=int(d.get('runs',{}).get('total',0));tot[t]['wickets']+=len(d.get('wickets',[]))
+                if not tot:continue
+                read+=1;winner=info.get('outcome',{}).get('winner');otype=str(info.get('outcome',{}).get('result','')).lower();date=(info.get('dates') or [''])[0]
+                for t in teams:
+                  opp=next(x for x in teams if x!=t);targets=[formats[fkey][t]]
+                  if fkey=='T20':targets.append(comps[ckey][t])
+                  for s in targets:
+                    s['matches']+=1;s['runs_scored']+=tot[t]['runs'];s['innings_batted']+=1;s['wickets_lost']+=tot[t]['wickets'];s['runs_conceded']+=tot[opp]['runs'];s['innings_bowled']+=1
+                    if winner==t:res='win';s['wins']+=1
+                    elif winner in teams:res='loss';s['losses']+=1
+                    elif otype=='draw':res='draw';s['draws']+=1
+                    else:res='no_result';s['no_results']+=1
+                    s['recent_results'].append({'date':date,'opponent':opp,'result':res,'runs':tot[t]['runs'],'opponent_runs':tot[opp]['runs'],'competition':ev})
+              except Exception as e: print('Skipped',fn,e)
+          def pack(d):
+            out={}
+            for team,s in d.items():s['recent_results'].sort(key=lambda x:x['date']);s['recent_results']=s['recent_results'][-10:];out[team]=s
+            return out
+          out={'source':'Cricsheet','source_url':'https://cricsheet.org/downloads/','matches_read':read,'formats':{},'competitions':{}}
+          for k,v in formats.items():out['formats'][k]={'teams':pack(v)}
+          for k,v in comps.items():out['competitions'][k]={'teams':pack(v)}
+          os.makedirs('data',exist_ok=True)
+          with open('data/cricsheet-team-stats.json','w',encoding='utf-8') as f:json.dump(out,f,ensure_ascii=False,separators=(',',':'))
+          print('Processed matches:',read,'; competitions:',{k:len(v) for k,v in comps.items()})
           PY
-
-      - name: Commit processed statistics
+      - name: Commit generated statistics
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/cricsheet-team-stats.json
-          git diff --cached --quiet || git commit -m "Separate Cricsheet statistics by format"
+          git diff --cached --quiet || git commit -m "Build competition-specific Cricsheet statistics"
           git push
           
