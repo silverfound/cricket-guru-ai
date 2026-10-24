@@ -78,6 +78,19 @@ async function loadMatches() {
         const m = up[Number(btn.dataset.i)];
         $('a').value = getName(m.home || m.teams?.[0]);
         $('b').value = getName(m.away || m.teams?.[1]);
+        
+const matchDate = new Date(getDate(m));
+
+if (!Number.isNaN(matchDate.getTime())) {
+  const pad = n => String(n).padStart(2, '0');
+
+  $('date').value =
+    `${matchDate.getFullYear()}-${pad(matchDate.getMonth() + 1)}-${pad(matchDate.getDate())}`;
+
+  $('time').value =
+    `${pad(matchDate.getHours())}:${pad(matchDate.getMinutes())}`;
+}
+        
 
         const league = String(m.league || m.competition || '').toLowerCase();
         if (league.includes('odi')) {
