@@ -622,7 +622,7 @@
     "attendance": null,
     "broadcast": null,
     "round": null,
-    "has_odds": false
+    "has_odds": true
   },
   {
     "id": "09c3d85c-5ed1-433b-83c6-d831db46ca38",
@@ -1789,21 +1789,31 @@
     "sport": "cricket",
     "league": "T20I Cricket",
     "home": {
-      "id": "4d3faf6c-8093-4713-a3c5-7aeeb0abd452",
-      "name": "Mozambique",
-      "short_name": "MOZ",
-      "logo_url": "https://api.bigballsdata.com/v1/assets/dlJ_Huf-3BZ4j6JWYz1xpVlVsTK_ilfDjYn0ex3OnURqcoWvFnh8KoxE_VWrqYmDruNHcXhd-8e5iJSvIR971DvUgqARpVBQ7ALk6u1syMWDQJ2R3OBt"
-    },
-    "away": {
       "id": "a5810141-a278-5d74-87d1-8ceaccf247cc",
       "name": "Uganda",
       "short_name": null,
       "logo_url": "https://api.bigballsdata.com/v1/assets/yvfSGVuCjhu5BcE-zdBtm_omZR4JIAsnXXdT9gNkLwNEd6EU-Avj7sF7j4pVLVGp9s2z2awT5w861vba-DsCxuC3dzldcdBwvn-BXlNGTsCFiiA5N6cQ"
     },
+    "away": {
+      "id": "4d3faf6c-8093-4713-a3c5-7aeeb0abd452",
+      "name": "Mozambique",
+      "short_name": "MOZ",
+      "logo_url": "https://api.bigballsdata.com/v1/assets/dlJ_Huf-3BZ4j6JWYz1xpVlVsTK_ilfDjYn0ex3OnURqcoWvFnh8KoxE_VWrqYmDruNHcXhd-8e5iJSvIR971DvUgqARpVBQ7ALk6u1syMWDQJ2R3OBt"
+    },
     "kickoff_utc": "2026-10-24T09:00:00.000Z",
-    "status": "scheduled",
-    "score": null,
-    "linescore": null,
+    "status": "finished",
+    "score": {
+      "home": 23,
+      "away": 19
+    },
+    "linescore": {
+      "away": [
+        19
+      ],
+      "home": [
+        23
+      ]
+    },
     "attendance": null,
     "broadcast": "",
     "round": null,
@@ -1826,9 +1836,19 @@
       "logo_url": "https://api.bigballsdata.com/v1/assets/eUcCM0yjARK6FCUIIgA1_t_e7fekh1fCOqVu53K1mJ0nVMQBN8EKgCNgfiuvIQYxUiUwjtCqD-Pu1NdBVTgTsLB6gUY_GsmK5qiBhumMMWxS7lapXKs"
     },
     "kickoff_utc": "2026-10-24T07:00:00.000Z",
-    "status": "scheduled",
-    "score": null,
-    "linescore": null,
+    "status": "finished",
+    "score": {
+      "home": 180,
+      "away": 181
+    },
+    "linescore": {
+      "away": [
+        181
+      ],
+      "home": [
+        180
+      ]
+    },
     "attendance": null,
     "broadcast": null,
     "round": null,
@@ -1851,13 +1871,23 @@
       "logo_url": "https://api.bigballsdata.com/v1/assets/x7WyViW23RWNWi3_PC4pP0u9bKYUV2Ufas9Bwywkqtnx_8xBUR8oyUjH7zyz7cuCz5Td-qbkwG8O9ta0FsEINq22Lo0KwQ0ukSBTFzzfXRV2Ku23Mg"
     },
     "kickoff_utc": "2026-10-24T08:00:00.000Z",
-    "status": "scheduled",
-    "score": null,
-    "linescore": null,
+    "status": "live",
+    "score": {
+      "home": 321,
+      "away": 14
+    },
+    "linescore": {
+      "away": [
+        14
+      ],
+      "home": [
+        321
+      ]
+    },
     "attendance": null,
     "broadcast": null,
     "round": null,
-    "has_odds": false
+    "has_odds": true
   },
   {
     "id": "0f3dbf10-7d5b-4344-83dc-2896ae24f980",
@@ -1876,8 +1906,11 @@
       "logo_url": "https://api.bigballsdata.com/v1/assets/eUcCM0yjARK6FCUIIgA1_t_e7fekh1fCOqVu53K1mJ0nVMQBN8EKgCNgfiuvIQYxUiUwjtCqD-Pu1NdBVTgTsLB6gUY_GsmK5qiBhumMMWxS7lapXKs"
     },
     "kickoff_utc": "2026-10-24T07:00:00.000Z",
-    "status": "scheduled",
-    "score": null,
+    "status": "finished",
+    "score": {
+      "home": 121,
+      "away": 0
+    },
     "linescore": null,
     "attendance": null,
     "broadcast": "",
@@ -1901,9 +1934,19 @@
       "logo_url": "https://api.bigballsdata.com/v1/assets/j8J4PRZkLeagZ9mvlLR1_W4TMer-D8pRWt9uH00atQyhJE68PE9arkhTI-46HUfUSrADdnTed1Kyfb2iblbAdK3OHs0HeX5J9CSugxAJ4z_-hKaBHOqo"
     },
     "kickoff_utc": "2026-10-24T00:00:00.000Z",
-    "status": "scheduled",
-    "score": null,
-    "linescore": null,
+    "status": "live",
+    "score": {
+      "home": 156,
+      "away": 274
+    },
+    "linescore": {
+      "away": [
+        274
+      ],
+      "home": [
+        156
+      ]
+    },
     "attendance": null,
     "broadcast": null,
     "round": null,
@@ -1926,9 +1969,19 @@
       "logo_url": "https://api.bigballsdata.com/v1/assets/B1JDw8BcrliR_gKK5Gw3TP3at4-yV7bI_gtq6Jg6gYoPNofkcUixA_zs7xPo9WS6MblnuZDnbKPV7nA5dGTTpYVDdnD8yYxUqSaiI8p4ndnObx3R6mxr"
     },
     "kickoff_utc": "2026-10-24T00:00:00.000Z",
-    "status": "scheduled",
-    "score": null,
-    "linescore": null,
+    "status": "live",
+    "score": {
+      "home": 283,
+      "away": 158
+    },
+    "linescore": {
+      "away": [
+        158
+      ],
+      "home": [
+        283
+      ]
+    },
     "attendance": null,
     "broadcast": null,
     "round": null,
@@ -6588,14 +6641,14 @@
       "logo_url": "https://api.bigballsdata.com/v1/assets/Ax0v4PUOfznanljOcMLPeuDVeDEak1_CD6m_o8hqohEQO_axfyoaJHppbp0XTmzjoFZLeCUOD3fh3AtOzJWckYBs5sJ5Ll-8eHaZT3nz-mGa8nDgVY8"
     },
     "kickoff_utc": "2026-10-24T23:30:00.000Z",
-    "status": "scheduled",
+    "status": "finished",
     "score": {
       "home": 304,
-      "away": 124
+      "away": 137
     },
     "linescore": {
       "away": [
-        124
+        137
       ],
       "home": [
         304
@@ -6700,14 +6753,16 @@
     "kickoff_utc": "2026-10-24T06:00:00.000Z",
     "status": "live",
     "score": {
-      "home": 0,
-      "away": 51
+      "home": 238,
+      "away": 371
     },
     "linescore": {
       "away": [
-        51
+        371
       ],
-      "home": []
+      "home": [
+        238
+      ]
     },
     "attendance": null,
     "broadcast": null,
