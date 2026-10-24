@@ -192,6 +192,73 @@ function teamSummary(teamName) {
   `;
 }
 
+/*
+ * Experimental estimate:
+ * Compares each team's historical win rate in the selected format.
+ * These percentages are relative historical estimates, not calibrated
+ * probabilities for the upcoming match.
+ */
+function experimentalWinnerPrediction(teamA, teamB) {
+  const statsA = findTeamStats(teamA);
+  const statsB = findTeamStats(teamB);
+
+  if (!statsA || !statsB) {
+    return `
+      <section style="margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px">
+        <h4>Experimental winner estimate</h4>
+        <p>Dono teams ka selected format mein record available nahi hai, isliye estimate calculate nahi ho saka.</p>
+      </section>
+    `;
+  }
+
+  const matchesA = Number(statsA.matches) || 0;
+  const matchesB = Number(statsB.matches) || 0;
+  const winsA = Number(statsA.wins) || 0;
+  const winsB = Number(statsB.wins) || 0;
+
+  if (matchesA <= 0 || matchesB <= 0) {
+    return `
+      <section style="margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px">
+        <h4>Experimental winner estimate</h4>
+        <p>Historical matches ka sample available nahi hai.</p>
+      </section>
+    `;
+  }
+
+  // Small smoothing adjustment for teams with limited historical matches.
+  const rateA = (winsA + 1) / (matchesA + 2);
+  const rateB = (winsB + 1) / (matchesB + 2);
+
+  const totalRate = rateA + rateB;
+  const chanceA = Math.round((rateA / totalRate) * 100);
+  const chanceB = 100 - chanceA;
+
+  let comparison;
+
+  if (chanceA === chanceB) {
+    comparison = "Dono teams ka historical estimate barabar hai.";
+  } else if (chanceA > chanceB) {
+    comparison = `${esc(teamA)} ka historical win-rate estimate zyada hai.`;
+  } else {
+    comparison = `${esc(teamB)} ka historical win-rate estimate zyada hai.`;
+  }
+
+  return `
+    <section style="margin:12px 0;padding:16px;border:1px solid var(--line);border-radius:12px">
+      <h4>Experimental winner estimate</h4>
+      <p><strong>${esc(teamA)}:</strong> ${chanceA}%</p>
+      <p><strong>${esc(teamB)}:</strong> ${chanceB}%</p>
+      <p>${comparison}</p>
+      <p style="font-size:0.9em;opacity:0.85">
+        Yeh selected format ke historical win rates ka relative comparison hai,
+        actual match ki calibrated probability nahi. Toss, playing XI, current form,
+        pitch aur match conditions is estimate mein shamil nahi hain.
+        Exact score ki prediction nahi ki ja rahi.
+      </p>
+    </section>
+  `;
+}
+
 async function loadHistoricalData() {
   try {
     const response = await fetch(
@@ -341,9 +408,7 @@ if ($("form")) {
       <p>Historical data source: Cricsheet</p>
       ${teamSummary(teamA)}
       ${teamSummary(teamB)}
-      <p style="padding:12px;border-radius:10px;border:1px solid var(--line)">
-        <strong>Prediction status:</strong> Format-specific historical records connected hain. Abhi validated winner aur exact-score prediction model available nahi hai.
-      </p>
+      ${experimentalWinnerPrediction(teamA, teamB)}
     `;
   });
 }
